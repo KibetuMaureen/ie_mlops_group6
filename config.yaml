@@ -158,24 +158,66 @@ data_validation:
       - name: "trans_date_trans_time"
         dtype: "str"
         required: true
+      - name: "cc_num"
+        dtype: "int"
+        required: true
+      - name: "merchant"
+        dtype: "str"
+        required: true
       - name: "category"
         dtype: "str"
         required: true
       - name: "amt"
         dtype: "float"
         required: true
-        min: 0
+      - name: "first"
+        dtype: "str"
+        required: true
+      - name: "last"
+        dtype: "str"
+        required: true
       - name: "gender"
         dtype: "str"
+        required: true
+      - name: "street"
+        dtype: "str"
+        required: true
+      - name: "city"
+        dtype: "str"
+        required: true
+      - name: "state"
+        dtype: "str"
+        required: true
+      - name: "zip"
+        dtype: "int"
+        required: true
+      - name: "lat"
+        dtype: "float"
+        required: true
+      - name: "long"
+        dtype: "float"
         required: true
       - name: "city_pop"
         dtype: "int"
         required: true
-        min: 0
+      - name: "job"
+        dtype: "str"
+        required: true
       - name: "dob"
         dtype: "str"
+        required: true
+      - name: "trans_num"
+        dtype: "str"
+        required: true
+      - name: "unix_time"
+        dtype: "int"
+        required: true
+      - name: "merch_lat"
+        dtype: "float"
+        required: true
+      - name: "merch_long"
+        dtype: "float"
         required: true
       - name: "is_fraud"
         dtype: "int"
         required: true
-        allowed_values: [0, 1]
