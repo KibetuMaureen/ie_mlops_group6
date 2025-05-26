@@ -6,7 +6,7 @@ This project implements a modular, end-to-end MLOps pipeline for credit card fra
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ie_mlops_group6/
@@ -28,7 +28,7 @@ ie_mlops_group6/
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
 1. **Clone the repository and navigate to the project root:**
 
@@ -59,7 +59,7 @@ ie_mlops_group6/
 
 ---
 
-## ⚙️ Pipeline Stages
+## Pipeline Stages
 
 - **Data Loading:** Reads raw data from CSV or other sources.
 - **Data Validation:** Checks schema, types, and required columns.
@@ -69,7 +69,7 @@ ie_mlops_group6/
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Unit tests are provided in the `tests/` directory.  
 Run all tests with:
@@ -80,19 +80,19 @@ pytest tests/
 
 ---
 
-## 📄 Configuration
+## Configuration
 
 All pipeline settings (features, model parameters, paths, etc.) are controlled via `config.yaml`.  
 Edit this file to customize your experiment.
 
 ---
 
-## 📝 Authors
+## Authors
 
 - Group 6, IE MBD ML Ops
 
 ---
 
-## 📬 Contact
+## Contact
 
 For questions or contributions, please open an issue or contact the project maintainers.
