@@ -1,46 +1,85 @@
-"""
+""""
 inferencer.py
 
-Batch inference entry point.
+Loads config.yaml for paths & settings, then runs batch inference:
+  - Validates input against schema
+  - Applies full preprocessing pipeline to the input data
+  - Predicts class & probability using the active model
+  - Logs every inference call for auditability
 
-Usage
------
-python -m src.inference.inferencer \
-    data/inference/new_data.csv config.yaml data/inference/output_predictions.csv
+CLI:
+  python -m src.inference.inferencer \
+    data/inference/newdata_fraudtest.csv \
+    configs/config.yaml \
+    data/inference/output_predictions.csv
 """
 
-from __future__ import annotations
-
-import argparse
+import os
+import sys
 import logging
 import pickle
-import sys
-from pathlib import Path
+import yaml
+import argparse
+from datetime import datetime
+from typing import List, Dict
 
 import pandas as pd
-import yaml
+#from pydantic import BaseModel, ValidationError
+#from preprocess.preprocessing import get_output_feature_names #check path 
 
-from preprocess.preprocessing import get_output_feature_names
+# ------------------------------------------------------------------------------
+# 1) CONFIGURATION & LOGGING
+# ------------------------------------------------------------------------------
 
+CONFIG_PATH = "../configs/config.yaml"  
 
+with open(CONFIG_PATH, "r") as f:
+    cfg = yaml.safe_load(f)
+
+# Inspect a few keys:
+print("Active model:", cfg["model"]["active"])
+print("Model save path:", cfg["model"][cfg["model"]["active"]]["save_path"])
+print("Pipeline path:", cfg["artifacts"]["preprocessing_pipeline"])
+print("Inference threshold (default 0.5):", cfg.get("inference", {}).get("threshold", 0.5)) #review if we want to change it
+
+# Ensure the config has the expected structure
+if "model" not in cfg or "active" not in cfg["model"]:
+    raise ValueError("Config must specify an active model under 'model.active'")
+
+# Active model key 
+active = cfg["model"]["active"]
+
+# Paths for model and pipeline artifacts
+MODEL_FILE    = cfg["model"][active]["save_path"]
+PIPELINE_FILE = cfg["artifacts"]["preprocessing_pipeline"]
+
+# Inference threshold (can be added under a new 'inference' section in config) review if we want to change it 
+THRESHOLD = cfg.get("inference", {}).get("threshold", 0.5) 
+
+# set up audit logger
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler("logs/inference.log")
+fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+logger.addHandler(fh)
 
-
-# helper to load pickled artefacts
+# Function to load pickled artifacts with error handling
 def _load_pickle(path: str, label: str):
-    """Safely load a pickled artefact, with a descriptive error if missing"""
     p = Path(path)
     if not p.is_file():
-        raise FileNotFoundError(f"{label} not found: {path}")
+        raise FileNotFoundError(f"{label} not found at {path}")
     with p.open("rb") as fh:
         return pickle.load(fh)
 
-
 def _setup_logging():
+    log_cfg = cfg["logging"]
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        filename=log_cfg["log_file"],
+        level=log_cfg["level"],
+        format=log_cfg["format"],
+        datefmt=log_cfg.get("datefmt"),
     )
+    logger = logging.getLogger(__name__)
 
 
 def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
@@ -54,23 +93,26 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
     """
     _setup_logging()
 
-    # ── 1. Load config and artefacts ──────────────────────────────────────
+
+    def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
+    # 1) Load config
     with open(config_yaml, "r", encoding="utf-8") as fh:
-        config: Dict = yaml.safe_load(fh)
+        cfg: Dict = yaml.safe_load(fh)
 
-    pp_path = config.get("artifacts", {}).get(
-        "preprocessing_pipeline", "models/preprocessing_pipeline.pkl"
-    )
-    model_path = config.get("artifacts", {}).get(
-        "model_path", "models/model.pkl")
+    active = cfg["model"]["active"]                                        # "xgboost"
+    model_path = cfg["model"][active]["save_path"]                         # :contentReference[oaicite:4]{index=4}
+    pp_path    = cfg["artifacts"]["preprocessing_pipeline"]                # :contentReference[oaicite:5]{index=5}
+    threshold  = cfg.get("inference", {}).get("threshold", 0.5)
 
-    logger.info("Loading preprocessing pipeline: %s", pp_path)
+    logger.info("Active model: %s", active)
+    logger.info("Loading pipeline from %s", pp_path)
     pipeline = _load_pickle(pp_path, "preprocessing pipeline")
 
-    logger.info("Loading trained model: %s", model_path)
+    logger.info("Loading model from %s", model_path)
     model = _load_pickle(model_path, "model")
 
-    # ── 2. Read raw data and basic validation ─────────────────────────────
+
+    # 2) Read raw data and validate ─────────────────────────────
     logger.info("Reading input CSV: %s", input_csv)
     input_df: pd.DataFrame = pd.read_csv(input_csv)
     logger.info("Input shape: %s", input_df.shape)
@@ -83,11 +125,15 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
 
     X_raw = input_df[raw_features]
 
-    # ── 3. Transform via the *same* preprocessing pipeline ────────────────
-    logger.info("Applying preprocessing pipeline to input data")
-    X_proc = pipeline.transform(X_raw)
+    # 3) Transform via the preprocessing pipeline ────────────────
+    logger.info("Applying preprocessing pipeline")
+    try:
+        X_proc = pipeline.transform(X_raw)
+    except Exception:
+        logger.exception("Preprocessing failed")
+        sys.exit(1)
 
-    # ── 4. Keep only engineered features that were used in training ───────
+    # 4) Keep only engineered features that were used in training ───────
     engineered = config.get("features", {}).get("engineered", [])
     if engineered:
         feature_names = get_output_feature_names(
@@ -104,32 +150,37 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
         indices = [feature_names.index(f) for f in selected]
         X_proc = X_proc[:, indices]
 
-    # ── 5. Generate predictions ───────────────────────────────────────────
+    # 5) Generate predictions ───────────────────────────────────────────
     logger.info("Generating predictions")
-    input_df["prediction"] = model.predict(X_proc)
     if hasattr(model, "predict_proba"):
-        input_df["prediction_proba"] = model.predict_proba(X_proc)[:, 1]
+        probs = model.predict_proba(X_proc)[:, 1]
+        preds = (probs >= threshold).astype(int)
+    else:
+        preds = model.predict(X_proc)
+        probs = None
 
-    # ── 6. Save results ───────────────────────────────────────────────────
+    df["prediction"] = preds
+    if probs is not None:
+        df["prediction_proba"] = probs
+
+    # 6) Save results ───────────────────────────────────────────────────
     logger.info("Writing predictions to %s", output_csv)
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
     input_df.to_csv(output_csv, index=False)
     logger.info("Inference complete")
 
 
+
 # CLI entry point
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run batch inference on a CSV file")
-    parser.add_argument("input_csv", help="Path to raw input CSV")
-    parser.add_argument("config_yaml", help="Path to config.yaml")
-    parser.add_argument("output_csv", help="Destination for predictions CSV")
+    parser = argparse.ArgumentParser(description="Batch inference on CSV")
+    parser.add_argument("input_csv",   help="Raw input CSV path")
+    parser.add_argument("config_yaml", help="Config YAML path")
+    parser.add_argument("output_csv",  help="Output predictions CSV path")
     args = parser.parse_args()
-
     run_inference(args.input_csv, args.config_yaml, args.output_csv)
-
 
 if __name__ == "__main__":
     main()
 
-# python -m src.inference.inferencer data/inference/new_data.csv config.yaml data/inference/output_predictions.csv
+    
