@@ -1,13 +1,16 @@
 import pytest
+import os
 import pandas as pd
 import yaml
-from data_validation.data_validation import validate_schema, DataValidationError
+from src.data_validation.data_validation import validate_schema, DataValidationError
 
 # Load schema from config.yaml once
-with open("../config/config.yaml") as f:
+config_path = os.path.join(os.path.dirname(__file__), "..", "config.yaml")
+with open(config_path) as f:
     config = yaml.safe_load(f)
 
 schema = config["data_validation"]["schema"]["columns"]
+
 
 def test_valid_data_passes():
     df = pd.DataFrame({
