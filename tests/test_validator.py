@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import yaml
-from src.data_validation.validator import validate_schema, DataValidationError
+from data_validation.data_validation import validate_schema, DataValidationError
 
 # Load schema from config.yaml once
 with open("../config/config.yaml") as f:

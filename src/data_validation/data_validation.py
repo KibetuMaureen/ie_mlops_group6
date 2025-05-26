@@ -1,12 +1,12 @@
 import pandas as pd
 import logging
-from typing import Any
+from typing import Any, List, Dict
 
 class DataValidationError(Exception):
     """Raised when validation fails."""
     pass
 
-def validate_schema(df: pd.DataFrame, schema: list[dict[str, Any]]) -> None:
+def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
     """
     Validate a DataFrame against schema definitions from the YAML config.
 
