@@ -23,7 +23,10 @@ def load_config(config_path: str = "config2.yaml") -> dict:
         raise FileNotFoundError(f"Config file not found: {config_path}")
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
+    if not isinstance(config, dict):
+        raise ValueError(f"Invalid config format in: {config_path}")
     return config
+
 
 
 def load_env(env_path: str = ".env"):
