@@ -1,0 +1,22 @@
+name: fraud_detection_env
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pandas
+  - numpy
+  - scikit-learn
+  - xgboost
+  - seaborn
+  - matplotlib
+  - plotly
+  - geopy
+  - pyyaml
+  - jupyterlab
+  - python-dotenv
+  - pip
+  - pip:
+      - bayesian-optimization
+      - pytest
+      - pytest-cov
+      
