@@ -1,4 +1,4 @@
-name: fraud_detection_env
+name: fraud_detection_env_dev
 channels:
   - defaults
 dependencies:
