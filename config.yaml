@@ -1,8 +1,8 @@
 # config.yaml for Credit Card Fraud Detection
 
 data_source:
-  raw_path: "../data/raw/fraudTrain.csv"           # Path to raw data
-  processed_path: "../data/processed/data_processed.csv"  # Path to processed data
+  raw_path: "./data/raw/fraudTrain.csv"           # Path to raw data
+  processed_path: "./data/processed/data_processed.csv"  # Path to processed data
   type: "csv"                                     # Data file type: 'csv' or 'excel'
   sheet_name: "Sheet1"                            # Only used if type == 'excel'
   delimiter: ","                                  # Only used if type == 'csv'
