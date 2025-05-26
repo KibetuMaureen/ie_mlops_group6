@@ -1,0 +1,5 @@
+.DS_store
+ie_mlops_group6.egg-info/
+Miniconda3-latest-MacOSX-arm64.sh
+__pycache__/
+**.csv
