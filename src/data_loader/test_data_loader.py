@@ -70,9 +70,9 @@ def test_load_config_invalid_format(tmp_path):
     bad_config_path = tmp_path / "bad_config.yaml"
     bad_config_path.write_text("[]")  # List, not dict
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as exc_info:
         load_config(str(bad_config_path))
-     assert "valid data path" in str(exc_info.value)
+    assert "Invalid config format" in str(exc_info.value)
 
 
 
@@ -83,7 +83,7 @@ def test_load_env_executes():
 def test_load_data_invalid_path_type():
     with pytest.raises(ValueError):
         load_data(path=None)
-    else: 
+
 def test_get_data_missing_path(tmp_path):
     bad_config = {
         "data_source": {
