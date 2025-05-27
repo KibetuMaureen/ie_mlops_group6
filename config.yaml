@@ -2,6 +2,7 @@
 
 data_source:
   raw_path: "./data/raw/fraudTrain.csv"           # Path to raw data
+  features_path: "./data/features/data_features.csv"  # Path to features
   processed_path: "./data/processed/data_processed.csv"  # Path to processed data
   type: "csv"                                     # Data file type: 'csv' or 'excel'
   sheet_name: "Sheet1"                            # Only used if type == 'excel'
@@ -119,11 +120,16 @@ features:
     - category
     - gender
   engineered:
+    - amt
+    - city_pop
     - hour
     - day
     - month
+    - geo_distance
     - day_of_week
-    - is_weekend
+    - age
+    - category
+    - gender
 
 target: is_fraud
 
@@ -142,6 +148,23 @@ preprocessing:
     normalization: minmax
   age:
     normalization: minmax
+  label_encode:
+    - category
+    - gender
+  numeric:
+    - amt
+    - lat
+    - long
+    - merch_lat
+    - merch_long
+    - hour
+    - day
+    - month
+    - day_of_week
+    - is_weekend
+    - age
+    - geo_distance
+
 
 artifacts:
   metrics_path: models/metrics.json
