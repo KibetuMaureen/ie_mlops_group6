@@ -1,7 +1,7 @@
 """
 main.py
 
-Minimal entry point to check data loading and validation with staging support.
+Minimal entry point to check data loading, validation, and run the full ML pipeline with staging support.
 """
 
 import argparse
@@ -11,17 +11,12 @@ import os
 import yaml
 from src.data_loader.data_loader import get_data
 from src.data_validation.data_validation import validate_schema
+from src.model.model import run_model_pipeline
 
 logger = logging.getLogger(__name__)
 
 
 def setup_logging(logging_config: dict):
-    """
-    Set up logging configuration for the pipeline.
-
-    Args:
-        logging_config (dict): Logging configuration dictionary.
-    """
     log_file = logging_config.get("log_file", "logs/main.log")
     log_dir = os.path.dirname(log_file)
     if log_dir and not os.path.exists(log_dir):
@@ -44,18 +39,6 @@ def setup_logging(logging_config: dict):
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
-    """
-    Load the configuration YAML file.
-
-    Args:
-        config_path (str): Path to the configuration YAML file.
-
-    Returns:
-        dict: Loaded configuration dictionary.
-
-    Raises:
-        FileNotFoundError: If the config file does not exist.
-    """
     if not os.path.isfile(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
     with open(config_path, "r", encoding="utf-8") as f:
@@ -64,11 +47,8 @@ def load_config(config_path: str = "config.yaml") -> dict:
 
 
 def main():
-    """
-    Main function to parse arguments and check data loading and validation.
-    """
     parser = argparse.ArgumentParser(
-        description="Minimal data loading and validation checker"
+        description="Minimal data loading, validation, and pipeline runner"
     )
     parser.add_argument(
         "--config",
@@ -86,8 +66,8 @@ def main():
         "--stage",
         type=str,
         default="all",
-        choices=["load", "validate", "all"],
-        help="Pipeline stage to execute: load, validate, or all (default: all)"
+        choices=["load", "validate", "pipeline", "all"],
+        help="Pipeline stage to execute: load, validate, pipeline or all (default: all)"
     )
     args = parser.parse_args()
 
@@ -108,7 +88,7 @@ def main():
     df_raw = None
 
     # Data loading
-    if args.stage in ["load", "all", "validate"]:
+    if args.stage in ["load", "all", "validate", "pipeline"]:
         try:
             df_raw = get_data(
                 config_path=args.config,
@@ -137,6 +117,16 @@ def main():
             logger.info("Data validation passed.")
         except Exception as e:
             logger.exception("Data validation failed: %s", e)
+            sys.exit(1)
+
+    # Run the full ML pipeline (feature engineering, preprocessing, modeling)
+    if args.stage in ["pipeline", "all"]:
+        logger.info("Starting full ML pipeline (preprocessing, feature engineering, modeling)...")
+        try:
+            run_model_pipeline(df_raw, config)
+            logger.info("ML pipeline completed successfully.")
+        except Exception as e:
+            logger.exception("ML pipeline failed: %s", e)
             sys.exit(1)
 
     logger.info("Pipeline completed successfully.")

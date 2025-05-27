@@ -9,6 +9,17 @@ class DataValidationError(Exception):
     pass
 
 
+def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Handle missing values using forward fill then backward fill.
+    """
+    df = df.copy()
+    df.fillna(method='ffill', inplace=True)
+    df.fillna(method='bfill', inplace=True)
+    logging.info("Missing values handled (ffill, then bfill) in data_validation.")
+    return df
+
+
 def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
     """
     Validate a DataFrame against schema definitions from the YAML config.
@@ -115,6 +126,12 @@ if __name__ == "__main__":
         type=str,
         help="Path to the YAML config file containing the schema."
     )
+    parser.add_argument(
+        "--output_csv",
+        type=str,
+        default=None,
+        help="Optional path to save the data after handling missing values."
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -139,6 +156,13 @@ if __name__ == "__main__":
     try:
         validate_schema(df, schema)
         logging.info("Data validation completed successfully.")
+        df = handle_missing_values(df)
+        if args.output_csv:
+            df.to_csv(args.output_csv, index=False)
+            logging.info(f"Data with missing values handled saved to {args.output_csv}")
     except DataValidationError as e:
         logging.error(f"Data validation failed: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Error during missing value handling: {e}")
         sys.exit(1)
