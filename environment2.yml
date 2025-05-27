@@ -14,14 +14,15 @@ dependencies:
   - pyyaml            # Read configuration from YAML files for flexibility
   - python-dotenv     # Load environment variables from a .env file (for secrets/config)
   - pytest            # Testing framework for robust, maintainable code
-  - pytest-dotenv     # Load environment variables from .env files in pytest
   - scikit-learn      # Machine learning library for model training and evaluation
   - pip               # Allows pip-only packages to be installed below
+  - pytest-cov  # Test coverage reporting for code quality and completeness
 
   - pip:
       - pytest-cov  # Test coverage reporting for code quality and completeness
       - black       # Code formatting to enforce style and readability
       - flake8      # Linting to check code for errors and best practices
+      - python-dotenv  # Load environment variables from a .env file (for secrets/config)
 =======
   - python=3.10  # Stable and widely-used Python version for compatibility
   - pandas       # Core library for data loading (CSV, Excel) and manipulation
