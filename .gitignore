@@ -1,6 +1,11 @@
 #gitignore for a Python project
 .gitignore
 
+#project notes
+notes.md
+notes.pdf
+
+
 #duplicate test files
 duplicated_files
 
@@ -35,6 +40,7 @@ logs/
 data/processed/
 data/splits/
 data/raw/
+data/features/
 
 # OS files
 .DS_Store
