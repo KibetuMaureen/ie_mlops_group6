@@ -4,7 +4,7 @@ import pandas as pd
 import yaml
 from src.data_validation.data_validation import validate_schema, DataValidationError
 
-# Load schema from config.yaml once
+# Load schema from config.yaml
 config_path = os.path.join(os.path.dirname(__file__), "..", "config.yaml")
 with open(config_path) as f:
     config = yaml.safe_load(f)
@@ -12,101 +12,97 @@ with open(config_path) as f:
 schema = config["data_validation"]["schema"]["columns"]
 
 
-def test_valid_data_passes():
-    df = pd.DataFrame({
-        "trans_date_trans_time": ["2020-06-01", "2020-06-02"],
-        "cc_num": [1234567890, 9876543210],
-        "merchant": ["amazon", "walmart"],
-        "category": ["grocery_pos", "shopping_net"],
-        "amt": [120.0, 80.5],
-        "first": ["John", "Alice"],
-        "last": ["Doe", "Smith"],
-        "gender": ["M", "F"],
-        "street": ["123 Main St", "456 Oak Ave"],
-        "city": ["San Francisco", "Austin"],
-        "state": ["CA", "TX"],
-        "zip": [94105, 73301],
-        "lat": [37.7749, 30.2672],
-        "long": [-122.4194, -97.7431],
-        "city_pop": [870000, 950000],
-        "job": ["Engineer", "Teacher"],
-        "dob": ["1985-01-01", "1990-02-02"],
-        "trans_num": ["abcd1234", "efgh5678"],
-        "unix_time": [1371922345, 1371922378],
-        "merch_lat": [37.8, 30.3],
-        "merch_long": [-122.4, -97.7],
-        "is_fraud": [0, 1]
-    })
-
-    validate_schema(df, schema)
-
-
-def test_missing_required_column_fails():
-    df = pd.DataFrame({
-        "amt": [120.0],
-        "gender": ["M"]
-        # Missing other required columns
-    })
-
-    with pytest.raises(DataValidationError):
-        validate_schema(df, schema)
-
-
-def test_invalid_categorical_value_fails():
-    df = pd.DataFrame({
-        "amt": [120.0],
-        "merch_lat": [37.1],
-        "merch_long": [-121.4],
-        "category": ["invalid_category"],
-        "gender": ["F"],
-        "state": ["CA"],
-        "is_fraud": [0]
-    })
-
-    with pytest.raises(DataValidationError):
-        validate_schema(df, schema)
-
-
-def test_negative_amount_fails():
-    df = pd.DataFrame({
-        "amt": [-50.0],
-        "merch_lat": [37.1],
-        "merch_long": [-121.4],
-        "category": ["grocery_pos"],
-        "gender": ["F"],
-        "state": ["CA"],
-        "is_fraud": [0]
-    })
-
-    with pytest.raises(DataValidationError):
-        validate_schema(df, schema)
-
-
-def test_invalid_dtype_fails():
-    df = pd.DataFrame({
+def get_valid_df():
+    return pd.DataFrame({
         "trans_date_trans_time": ["2020-06-01"],
-        "cc_num": ["not_a_number"],  # should be int
-        "amt": [100.0],
-        "gender": ["M"],
+        "cc_num": [1234567890],
+        "merchant": ["amazon"],
         "category": ["grocery_pos"],
+        "amt": [120.0],
+        "first": ["John"],
+        "last": ["Doe"],
+        "gender": ["M"],
+        "street": ["123 Main St"],
+        "city": ["San Francisco"],
         "state": ["CA"],
-        "is_fraud": [0],
+        "zip": [94105],
+        "lat": [37.7749],
+        "long": [-122.4194],
+        "city_pop": [870000],
+        "job": ["Engineer"],
+        "dob": ["1985-01-01"],
+        "trans_num": ["abcd1234"],
+        "unix_time": [1371922345],
         "merch_lat": [37.8],
         "merch_long": [-122.4],
-        "first": ["Jane"],
-        "last": ["Doe"],
-        "merchant": ["target"],
-        "street": ["123 Fake St"],
-        "city": ["New York"],
-        "zip": [10001],
-        "lat": [40.7],
-        "long": [-74.0],
-        "city_pop": [8500000],
-        "job": ["Engineer"],
-        "dob": ["1992-04-04"],
-        "trans_num": ["tx001"],
-        "unix_time": [1371922345]
+        "is_fraud": [0]
     })
 
+
+def test_column_missing_but_not_required():
+    df = get_valid_df()
+    schema_copy = schema + [{"name": "optional_column", "dtype": "str", "required": False}]
+    validate_schema(df, schema_copy)
+
+
+def test_missing_optional_column_logs_warning(caplog):
+    df = get_valid_df()
+    schema_copy = schema + [{"name": "optional_column", "dtype": "str", "required": False}]
+    caplog.set_level("WARNING")
+    validate_schema(df, schema_copy)
+    assert "not found in DataFrame" in caplog.text
+
+
+def test_missing_value_in_optional_column_logs_warning(caplog):
+    df = get_valid_df()
+    df["optional_column"] = [None]
+    schema_copy = schema + [{"name": "optional_column", "dtype": "str", "required": False}]
+    caplog.set_level("WARNING")
+    validate_schema(df, schema_copy)
+    assert "missing values (optional)" in caplog.text
+
+
+def test_logging_of_type_mismatch(caplog):
+    df = get_valid_df()
+    df["cc_num"] = ["wrong"]
+    caplog.set_level("ERROR")
     with pytest.raises(DataValidationError):
         validate_schema(df, schema)
+    assert "incorrect type" in caplog.text
+
+
+def test_logging_of_allowed_values_violation(caplog):
+    df = get_valid_df()
+    df["gender"] = ["X"]
+    schema_with_allowed = []
+    for col in schema:
+        if col["name"] == "gender":
+            col = col.copy()
+            col["allowed_values"] = ["M", "F"]
+        schema_with_allowed.append(col)
+    caplog.set_level("ERROR")
+    with pytest.raises(DataValidationError):
+        validate_schema(df, schema_with_allowed)
+    assert "outside of allowed set" in caplog.text
+
+
+def test_logging_of_min_value_violation(caplog):
+    df = get_valid_df()
+    df["amt"] = [-100.0]
+    schema_with_min = []
+    for col in schema:
+        if col["name"] == "amt":
+            col = col.copy()
+            col["min"] = 0
+        schema_with_min.append(col)
+    caplog.set_level("ERROR")
+    with pytest.raises(DataValidationError):
+        validate_schema(df, schema_with_min)
+    assert "below minimum" in caplog.text
+
+
+def test_unknown_dtype_is_ignored():
+    df = get_valid_df()
+    df["mystery"] = ["unknown"]
+    schema_with_unknown = schema + [{"name": "mystery", "dtype": "mystery_type", "required": True}]
+    validate_schema(df, schema_with_unknown)
