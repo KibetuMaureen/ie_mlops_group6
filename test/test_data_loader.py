@@ -3,7 +3,7 @@ import os
 
 import pytest
 import pandas as pd
-from data_loader_2 import load_config, load_data, get_data
+from test.data_loader_2 import load_config, load_data, get_data
 
 CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'config2.yaml'))
 
