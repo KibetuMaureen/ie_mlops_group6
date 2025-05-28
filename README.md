@@ -23,6 +23,7 @@ ie_mlops_group6/
 │   ├── data_validation/       # Data validation utilities
 │   ├── preprocessing/         # Preprocessing pipeline (feature engineering, encoding, etc.)
 │   └── model/                 # Model training, optimization, and evaluation
+    └── inferencer/  
 └── tests/                     # Unit tests
 ```
 
@@ -51,12 +52,18 @@ ie_mlops_group6/
 5. **Run the pipeline:**
 
     ```bash
-    python -m src.main --config config.yaml --stage all
+    python -m src/main --config config.yaml --stage all
     ```
 
     - Use `--stage data` to only load and validate data.
     - Use `--stage train` to run preprocessing and model training.
 
+
+6. **Run inferencer:**
+
+```bash
+ython src/main.py --stage infer --config config.yaml
+```
 ---
 
 ## Pipeline Stages

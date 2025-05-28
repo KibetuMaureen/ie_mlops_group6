@@ -108,7 +108,6 @@ raw_features:
   - dob
   - merch_lat
   - merch_long
-  - is_fraud
 
 features:
   continuous:
@@ -244,3 +243,10 @@ data_validation:
       - name: "is_fraud"
         dtype: "int"
         required: true
+
+inference:
+  input_csv: "data/raw/fraudTest.csv"
+  output_csv: "data/inference/output_predictions.csv"
+  threshold: 0.5
+
+  

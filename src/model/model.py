@@ -14,6 +14,8 @@ from src.preprocessing.preprocessing import (
 )
 
 from src.features.features import add_engineered_features
+from src.evaluation.evaluator_sklearn import evaluate_model
+
 
 # Optionally import BayesianOptimization if available
 try:
@@ -206,16 +208,16 @@ def run_model_pipeline(df: pd.DataFrame, config: Dict[str, Any]):
     # Save processed data splits (ensure is_fraud is aligned with index!)
     processed_dir = config.get("artifacts", {}).get("processed_dir", "data/processed")
     os.makedirs(processed_dir, exist_ok=True)
-    X_train_pp[target] = y_train
+    #X_train_pp[target] = y_train
     X_train_pp.to_csv(
         os.path.join(processed_dir, "train_processed.csv"), index=False
     )
     if X_valid is not None:
-        X_valid_pp[target] = y_valid
+        #X_valid_pp[target] = y_valid
         X_valid_pp.to_csv(
             os.path.join(processed_dir, "valid_processed.csv"), index=False
         )
-    X_test_pp[target] = y_test
+    #X_test_pp[target] = y_test
     X_test_pp.to_csv(os.path.join(processed_dir, "test_processed.csv"), index=False)
 
     # Save preprocessing pipeline
@@ -255,6 +257,28 @@ def run_model_pipeline(df: pd.DataFrame, config: Dict[str, Any]):
         "save_path", f"models/{active}.pkl"
     )
     save_artifact(model, algo_model_path)
+
+   # 6. Evaluate on validation and test sets using sklearn evaluator
+
+    def _round_metrics(metrics: dict, ndigits: int = 2) -> dict:
+        return {
+            k: (round(v, ndigits) if isinstance(v, float) else v)
+            for k, v in metrics.items()
+        }
+
+    # Validation set evaluation
+    if X_valid is not None:
+        y_valid_pred = model.predict(X_valid_pp.values)
+        logger.info("Validation Evaluation:")
+        results_valid = evaluate_model(y_valid, y_valid_pred)
+        logger.info("Validation Metrics: %s", _round_metrics(results_valid))
+
+    # Test set evaluation
+    y_test_pred = model.predict(X_test_pp.values)
+    logger.info("Test Evaluation:")
+    results_test = evaluate_model(y_test, y_test_pred)
+    logger.info("Test Metrics: %s", _round_metrics(results_test))
+
 
 
 # CLI for standalone training
