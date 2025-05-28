@@ -5,8 +5,7 @@ import pytest
 import pandas as pd
 from data_loader_2 import load_config, load_data, get_data, load_env
 
-CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'config.yaml'))
-
+CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config.yaml'))
 # ------------------ CONFIG TESTS ------------------ #
 
 def test_load_config_success():
