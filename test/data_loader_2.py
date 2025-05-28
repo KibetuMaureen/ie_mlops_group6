@@ -18,12 +18,18 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def load_config(config_path: str = "config2.yaml") -> dict:
+def load_config(config_path: str = "config.yaml") -> dict:
     if not os.path.isfile(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
+
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
+
+    if not isinstance(config, dict):
+        raise ValueError("Config must be a dictionary.")
+
     return config
+
 
 
 def load_env(env_path: str = ".env"):
