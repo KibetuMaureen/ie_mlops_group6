@@ -11,6 +11,8 @@ duplicated_files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+**.csv
+**.coverage
 *.py[cod]
 *.so
 
