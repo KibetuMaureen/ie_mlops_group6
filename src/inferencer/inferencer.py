@@ -3,14 +3,11 @@ inferencer.py
 
 Batch inference entry point.
 
-Usage
------
-python -m src.inference.inferencer `
-    data/inference/new_data.csv config.yaml data/inference/output_predictions.csv
 """
 
 from __future__ import annotations
 
+import os
 import argparse
 import logging
 import pickle
@@ -41,11 +38,29 @@ def _load_pickle(path: str, label: str):
         return pickle.load(fh)
 
 
-def _setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    )
+def setup_logging(logging_config: dict):
+    log_file = logging_config.get("log_file", "logs/main.log")
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    log_format = logging_config.get(
+        "format", "%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+    date_format = logging_config.get("datefmt", "%Y-%m-%d %H:%M:%S")
+    log_level = getattr(logging, logging_config.get("level", "INFO"))
+
+    # Remove all handlers associated with the root logger object (prevents duplicate logs)
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    # File handler
+    file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+    file_handler.setLevel(log_level)
+    file_handler.setFormatter(logging.Formatter(log_format, date_format))
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(log_level)
+    console_handler.setFormatter(logging.Formatter(log_format, date_format))
+
+    logging.basicConfig(level=log_level, handlers=[file_handler, console_handler])
 
 
 def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
@@ -57,11 +72,13 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
     4. Optionally keep only the engineered subset used during training
     5. Generate predictions and save to CSV
     """
-    _setup_logging()
 
     # ── 1. Load config and artefacts ──────────────────────────────────────
     with open(config_yaml, "r", encoding="utf-8") as fh:
-        config: Dict = yaml.safe_load(fh)
+        config: dict = yaml.safe_load(fh)
+
+    # Setup logging using config
+    setup_logging(config.get("logging", {}))
 
     pp_path = config.get("artifacts", {}).get(
         "preprocessing_pipeline", "models/preprocessing_pipeline.pkl"
@@ -80,7 +97,7 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
     input_df: pd.DataFrame = pd.read_csv(input_csv)
     logger.info("Input shape: %s", input_df.shape)
 
-    #raw_features: List[str] = config.get("raw_features", [])
+    # raw_features: List[str] = config.get("raw_features", [])
     raw_features = config.get("raw_features", [])
     target = config["target"]
     input_features_raw = [f for f in raw_features if f != target]
@@ -93,7 +110,6 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
     X_raw = input_df[input_features_raw]
     X_raw = add_engineered_features(X_raw.copy())
 
-    
     # ── 3. Transform via the *same* preprocessing pipeline ────────────────
     logger.info("Applying preprocessing pipeline to input data")
     X_proc = pipeline.transform(X_raw)
@@ -114,8 +130,6 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
             sys.exit(1)
         indices = [feature_names.index(f) for f in selected]
         X_proc = X_proc[:, indices]
-
-    
 
     # ── 5. Generate predictions ───────────────────────────────────────────
     logger.info("Generating predictions")
@@ -144,4 +158,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

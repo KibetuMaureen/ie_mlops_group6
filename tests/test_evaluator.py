@@ -2,12 +2,7 @@ import sys
 import os
 import numpy as np
 import pytest
-
-# Add src/ to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-
-# Import your module
-from evaluation import evaluator_sklearn
+from src.evaluation import evaluator_sklearn
 
 def test_typical_case():
     """Test with typical binary classification case."""
@@ -23,6 +18,7 @@ def test_typical_case():
     assert "f1_score" in results
     assert results["confusion_matrix"].tolist() == [[2, 1], [1, 2]]
 
+
 def test_all_predictions_wrong():
     """Test when all predictions are incorrect."""
     y_true = np.array([0, 0, 1, 1])
@@ -34,6 +30,7 @@ def test_all_predictions_wrong():
     assert results["precision"] == 0.0
     assert results["recall"] == 0.0
     assert results["f1_score"] == 0.0
+
 
 def test_invalid_labels_raise_error():
     """Test that invalid prediction values raise an error."""

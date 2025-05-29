@@ -41,13 +41,15 @@ def get_valid_df():
 
 def test_column_missing_but_not_required():
     df = get_valid_df()
-    schema_copy = schema + [{"name": "optional_column", "dtype": "str", "required": False}]
+    schema_copy = schema + [{"name": "optional_column",
+                             "dtype": "str", "required": False}]
     validate_schema(df, schema_copy)
 
 
 def test_missing_optional_column_logs_warning(caplog):
     df = get_valid_df()
-    schema_copy = schema + [{"name": "optional_column", "dtype": "str", "required": False}]
+    schema_copy = schema + [{"name": "optional_column",
+                             "dtype": "str", "required": False}]
     caplog.set_level("WARNING")
     validate_schema(df, schema_copy)
     assert "not found in DataFrame" in caplog.text
@@ -56,7 +58,8 @@ def test_missing_optional_column_logs_warning(caplog):
 def test_missing_value_in_optional_column_logs_warning(caplog):
     df = get_valid_df()
     df["optional_column"] = [None]
-    schema_copy = schema + [{"name": "optional_column", "dtype": "str", "required": False}]
+    schema_copy = schema + [{"name": "optional_column",
+                             "dtype": "str", "required": False}]
     caplog.set_level("WARNING")
     validate_schema(df, schema_copy)
     assert "missing values (optional)" in caplog.text
@@ -104,5 +107,7 @@ def test_logging_of_min_value_violation(caplog):
 def test_unknown_dtype_is_ignored():
     df = get_valid_df()
     df["mystery"] = ["unknown"]
-    schema_with_unknown = schema + [{"name": "mystery", "dtype": "mystery_type", "required": True}]
+    schema_with_unknown = schema + [{"name": "mystery",
+                                     "dtype": "mystery_type",
+                                     "required": True}]
     validate_schema(df, schema_with_unknown)

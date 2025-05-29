@@ -10,6 +10,7 @@ from sklearn.metrics import (
 
 logging.basicConfig(level=logging.INFO)
 
+
 def evaluate_model(y_true, y_pred):
     """
     Uses sklearn's built-in metric functions.
@@ -41,4 +42,3 @@ def evaluate_model(y_true, y_pred):
     except Exception as e:
         logging.error(f"Sklearn evaluation failed: {e}")
         raise
-

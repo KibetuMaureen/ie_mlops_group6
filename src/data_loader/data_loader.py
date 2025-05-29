@@ -32,6 +32,8 @@ def load_config(config_path: str = "config2.yaml") -> dict:
         raise FileNotFoundError(f"Config file not found: {config_path}")
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
+    if not isinstance(config, dict):
+        raise ValueError(f"Config file must be a YAML mapping (dict), got {type(config).__name__}")
     return config
 
 

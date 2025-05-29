@@ -16,7 +16,7 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df.fillna(method='ffill', inplace=True)
     df.fillna(method='bfill', inplace=True)
-    logging.info("Missing values handled (ffill, then bfill) in data_validation.")
+    logging.info("Missing values handled in data_validation.")
     return df
 
 

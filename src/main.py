@@ -28,25 +28,33 @@ def setup_logging(logging_config: dict):
     log_format = logging_config.get(
         "format", "%(asctime)s - %(levelname)s - %(name)s - %(message)s")
     date_format = logging_config.get("datefmt", "%Y-%m-%d %H:%M:%S")
-    logging.basicConfig(
-        filename=log_file,
-        level=getattr(logging, logging_config.get("level", "INFO")),
-        format=log_format,
-        datefmt=date_format,
-        filemode="a"
-    )
-    console = logging.StreamHandler()
-    console.setLevel(getattr(logging, logging_config.get("level", "INFO")))
-    formatter = logging.Formatter(log_format, date_format)
-    console.setFormatter(formatter)
-    logging.getLogger().addHandler(console)
+    log_level = getattr(logging, logging_config.get("level", "INFO"))
+
+    # Remove all handlers associated with the root logger object (prevents duplicate logs)
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    # File handler
+    file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+    file_handler.setLevel(log_level)
+    file_handler.setFormatter(logging.Formatter(log_format, date_format))
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(log_level)
+    console_handler.setFormatter(logging.Formatter(log_format, date_format))
+
+    logging.basicConfig(level=log_level, handlers=[file_handler, console_handler])
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
     if not os.path.isfile(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
     with open(config_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        config = yaml.safe_load(f)
+    if not isinstance(config, dict):
+        raise ValueError(f"Config file must be a YAML mapping (dict), got {type(config).__name__}")
+    return config
 
 
 def main():

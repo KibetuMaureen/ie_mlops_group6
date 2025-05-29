@@ -49,11 +49,9 @@ def add_engineered_features(df: pd.DataFrame) -> pd.DataFrame:
     df["month"] = df["trans_date_trans_time"].dt.month
     df["day_of_week"] = df["trans_date_trans_time"].dt.dayofweek
     df["is_weekend"] = (df["day_of_week"] >= 5).astype(int)
-    
     # Age
     df["dob"] = pd.to_datetime(df["dob"])
     df["age"] = (df["trans_date_trans_time"] - df["dob"]).dt.days // 365
-    
     # Geo distance
     df["geo_distance"] = df.apply(calculate_distance, axis=1)
     logger.info("Computed geo distance.")
