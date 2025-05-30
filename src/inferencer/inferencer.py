@@ -18,7 +18,6 @@ import pandas as pd
 import yaml
 
 from src.preprocessing.preprocessing import (
-    build_preprocessing_pipeline,
     get_output_feature_names,
 )
 
@@ -39,28 +38,46 @@ def _load_pickle(path: str, label: str):
 
 
 def setup_logging(logging_config: dict):
+    """
+    Set up logging to both console and file using configuration from YAML.
+
+    Args:
+        logging_config (dict):
+
+        Configuration dictionary with keys like 'log_file',
+        'level', 'format', and 'datefmt'.
+    """
     log_file = logging_config.get("log_file", "logs/main.log")
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    log_format = logging_config.get(
-        "format", "%(asctime)s - %(levelname)s - %(name)s - %(message)s")
-    date_format = logging_config.get("datefmt", "%Y-%m-%d %H:%M:%S")
-    log_level = getattr(logging, logging_config.get("level", "INFO"))
 
-    # Remove all handlers associated with the root logger object (prevents duplicate logs)
+    log_format = logging_config.get(
+        "format", "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    )
+    date_format = logging_config.get("datefmt", "%Y-%m-%d %H:%M:%S")
+    log_level = getattr(
+        logging,
+        logging_config.get("level", "INFO").upper(),
+        logging.INFO)
+
+    # Remove all existing handlers to prevent duplicate logs
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
 
-    # File handler
+    # Create and configure file handler
     file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
     file_handler.setLevel(log_level)
     file_handler.setFormatter(logging.Formatter(log_format, date_format))
 
-    # Console handler
+    # Create and configure console handler
     console_handler = logging.StreamHandler()
     console_handler.setLevel(log_level)
     console_handler.setFormatter(logging.Formatter(log_format, date_format))
 
-    logging.basicConfig(level=log_level, handlers=[file_handler, console_handler])
+    # Apply the handlers
+    logging.basicConfig(
+        level=log_level,
+        handlers=[file_handler, console_handler]
+        )
 
 
 def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:

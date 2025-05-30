@@ -11,8 +11,19 @@ logger = logging.getLogger(__name__)
 
 def preprocess_data(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     """
-    Label encodes columns in config['preprocessing']['label_encode'].
-    Does NOT drop any columns except those replaced by encoding.
+    Apply label encoding to categorical columns specified in the config.
+
+    This function replaces original categorical columns with label-encoded
+    versions.
+
+    Args:
+        df (pd.DataFrame): Input dataframe to preprocess.
+        config (dict):
+
+        Configuration dictionary containing preprocessing parameters.
+
+    Returns:
+        pd.DataFrame: DataFrame with label-encoded columns.
     """
     try:
         logger.info("Starting preprocessing...")
@@ -41,7 +52,16 @@ def preprocess_data(df: pd.DataFrame, config: dict) -> pd.DataFrame:
 
 def build_preprocessing_pipeline(config: dict) -> Pipeline:
     """
-    Build a sklearn Pipeline for preprocessing based on config.
+    Construct an sklearn preprocessing pipeline for numeric features.
+
+    The pipeline imputes missing values with the mean and scales features
+    using StandardScaler. Other feature types are passed through unchanged.
+
+    Args:
+        config (dict): Configuration dictionary with preprocessing details.
+
+    Returns:
+        Pipeline: sklearn Pipeline object for preprocessing.
     """
     numeric_features = config.get("preprocessing", {}).get("numeric", [])
 
@@ -72,7 +92,18 @@ def get_output_feature_names(
     preprocessor: Pipeline, input_features: list, config: dict
 ) -> list:
     """
-    Get output feature names after transformation.
+    Retrieve the list of output feature names after transformation.
+
+    This extracts feature names from the numeric features in the config and
+    any passthrough columns retained by the ColumnTransformer.
+
+    Args:
+        preprocessor (Pipeline): The preprocessing pipeline.
+        input_features (list): List of input feature names.
+        config (dict): Configuration dictionary containing feature info.
+
+    Returns:
+        list: List of transformed feature names.
     """
     col_transform = preprocessor.named_steps["preprocessor"]
     feature_names = []

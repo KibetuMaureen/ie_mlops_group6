@@ -1,8 +1,7 @@
-import sys
-import os
 import numpy as np
 import pytest
 from src.evaluation import evaluator_sklearn
+
 
 def test_typical_case():
     """Test with typical binary classification case."""

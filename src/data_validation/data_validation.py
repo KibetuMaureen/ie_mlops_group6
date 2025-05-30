@@ -56,14 +56,18 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
         if missing_count > 0:
             if required:
                 logging.error(
-                    f"Column '{name}' has {missing_count} missing values (required)."
+                    "Column '%s' has %d missing values (required).",
+                    name,
+                    missing_count
                 )
                 raise DataValidationError(
                     f"Column '{name}' has {missing_count} missing values (required)."
                 )
             else:
                 logging.warning(
-                    f"Column '{name}' has {missing_count} missing values (optional)."
+                    "Column '%s' has %d missing values (optional).",
+                    name,
+                    missing_count
                 )
 
         # Check data type
@@ -152,14 +156,19 @@ if __name__ == "__main__":
         logging.error(f"Failed to load config file: {e}")
         sys.exit(1)
 
-    schema = config.get("data_validation", {}).get("schema", {}).get("columns", [])
+    schema = config.get("data_validation", {}) \
+        .get("schema", {}) \
+        .get("columns", [])
     try:
         validate_schema(df, schema)
         logging.info("Data validation completed successfully.")
         df = handle_missing_values(df)
         if args.output_csv:
             df.to_csv(args.output_csv, index=False)
-            logging.info(f"Data with missing values handled saved to {args.output_csv}")
+            logging.info(
+                "Data with missing values handled saved to %s",
+                args.output_csv
+            )
     except DataValidationError as e:
         logging.error(f"Data validation failed: {e}")
         sys.exit(1)

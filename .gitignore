@@ -39,10 +39,8 @@ logs/
 
 
 # Test, split, and processed data (if/when added)
-data/processed/
-data/splits/
-data/raw/
-data/features/
+data/*
+!data/.gitkeep
 
 # OS files
 .DS_Store
@@ -52,6 +50,7 @@ Thumbs.db
 .pytest_cache/
 .cache/
 .coverage
+htmlcov
 
 # VSCode and other IDE config
 .vscode/

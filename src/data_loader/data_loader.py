@@ -33,7 +33,10 @@ def load_config(config_path: str = "config2.yaml") -> dict:
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     if not isinstance(config, dict):
-        raise ValueError(f"Config file must be a YAML mapping (dict), got {type(config).__name__}")
+        raise ValueError(
+            f"Config file must be a YAML mapping (dict), "
+            f"got {type(config).__name__}"
+        )
     return config
 
 
@@ -121,7 +124,8 @@ def get_data(
         raise ValueError(f"Unknown data_stage: {data_stage}")
     if not path or not isinstance(path, str):
         logger.error(
-            "No valid data path specified in configuration for data_stage='%s'.",
+            "No valid data path specified in configuration for "
+            "data_stage='%s'.",
             data_stage
         )
         raise ValueError(
