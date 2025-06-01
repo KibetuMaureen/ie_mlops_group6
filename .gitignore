@@ -41,6 +41,7 @@ logs/
 # Test, split, and processed data (if/when added)
 data/*
 !data/.gitkeep
+!data/raw
 
 # OS files
 .DS_Store
