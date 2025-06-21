@@ -1,0 +1,253 @@
+# config.yaml for Credit Card Fraud Detection
+
+data_source:
+  raw_path: "./data/raw/fraudTrain.csv"           # Path to raw data
+  features_path: "./data/features/data_features.csv"  # Path to features
+  processed_path: "./data/processed/data_processed.csv"  # Path to processed data
+  type: "csv"                                     # Data file type: 'csv' or 'excel'
+  sheet_name: "Sheet1"                            # Only used if type == 'excel'
+  delimiter: ","                                  # Only used if type == 'csv'
+  header: 0                                       # Row number to use as column names (0-indexed)
+  encoding: "utf-8"                               # File encoding
+
+logging:
+  level: "INFO"
+  log_file: "./logs/main.log"
+  format: "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+  datefmt: "%Y-%m-%d %H:%M:%S"
+
+data_split:
+  test_size: 0.2
+  valid_size: 0.0
+  random_state: 42
+
+model:
+  active: xgboost  # Options: xgboost, decision_tree, random_forest
+
+  xgboost:
+    save_path: models/xgboost.pkl
+    params:
+      max_depth: 6
+      learning_rate: 0.1
+      n_estimators: 200
+      subsample: 0.8
+      colsample_bytree: 0.8
+      gamma: 0
+      reg_alpha: 0
+      reg_lambda: 1
+      scale_pos_weight: 10
+      random_state: 42
+    bayesian_optimization:
+      enabled: true
+      init_points: 5
+      n_iter: 20
+      random_state: 42
+      search_space:
+        max_depth: [3, 10]
+        learning_rate: [0.01, 0.3]
+        n_estimators: [100, 400]
+        subsample: [0.6, 1.0]
+        colsample_bytree: [0.6, 1.0]
+        gamma: [0, 5]
+        reg_alpha: [0, 1]
+        reg_lambda: [0, 5]
+
+  decision_tree:
+    save_path: models/decision_tree.pkl
+    params:
+      max_depth: 6
+      min_samples_split: 3
+      min_samples_leaf: 1
+      criterion: entropy
+      class_weight: balanced
+      random_state: 42
+    bayesian_optimization:
+      enabled: true
+      init_points: 5
+      n_iter: 20
+      random_state: 42
+      search_space:
+        max_depth: [3, 10]
+        min_samples_split: [2, 10]
+        min_samples_leaf: [1, 5]
+
+  random_forest:
+    save_path: models/random_forest.pkl
+    params:
+      n_estimators: 100
+      max_depth: 6
+      min_samples_split: 5
+      min_samples_leaf: 2
+      criterion: entropy
+      class_weight: balanced
+      random_state: 42
+      n_jobs: -1
+    bayesian_optimization:
+      enabled: true
+      init_points: 5
+      n_iter: 20
+      random_state: 42
+      search_space:
+        n_estimators: [50, 200]
+        max_depth: [3, 10]
+        min_samples_split: [2, 10]
+        min_samples_leaf: [1, 5]
+
+raw_features:
+  - trans_date_trans_time
+  - category
+  - amt
+  - gender
+  - city
+  - state
+  - zip
+  - lat
+  - long
+  - city_pop
+  - job
+  - dob
+  - merch_lat
+  - merch_long
+
+features:
+  continuous:
+    - amt
+    - city_pop
+    - age
+    - geo_distance
+  categorical:
+    - category
+    - gender
+  engineered:
+    - amt
+    - city_pop
+    - hour
+    - day
+    - month
+    - geo_distance
+    - day_of_week
+    - age
+    - category
+    - gender
+
+target: is_fraud
+
+metrics:
+  - Accuracy
+  - Precision
+  - Recall
+  - F1 Score
+  - ROC AUC
+
+preprocessing:
+  rename_columns:
+    "trans_date_trans_time": trans_date_trans_time
+    "dob": dob
+  amt:
+    normalization: minmax
+  age:
+    normalization: minmax
+  label_encode:
+    - category
+    - gender
+  numeric:
+    - amt
+    - lat
+    - long
+    - merch_lat
+    - merch_long
+    - hour
+    - day
+    - month
+    - day_of_week
+    - is_weekend
+    - age
+    - geo_distance
+
+
+artifacts:
+  split_path: "data/splits"
+  model_path: "models/model.pkl"
+  preprocessing_pipeline: "models/preprocessing_pipeline.pkl"
+
+
+data_validation:
+  enabled: true
+  action_on_error: "raise"
+  report_path: "logs/validation_report.json"
+  output_path: "data/processed/validated_data.csv"
+  schema:
+    columns:
+      - name: "trans_date_trans_time"
+        dtype: "str"
+        required: true
+      - name: "cc_num"
+        dtype: "int"
+        required: true
+      - name: "merchant"
+        dtype: "str"
+        required: true
+      - name: "category"
+        dtype: "str"
+        required: true
+      - name: "amt"
+        dtype: "float"
+        required: true
+      - name: "first"
+        dtype: "str"
+        required: true
+      - name: "last"
+        dtype: "str"
+        required: true
+      - name: "gender"
+        dtype: "str"
+        required: true
+      - name: "street"
+        dtype: "str"
+        required: true
+      - name: "city"
+        dtype: "str"
+        required: true
+      - name: "state"
+        dtype: "str"
+        required: true
+      - name: "zip"
+        dtype: "int"
+        required: true
+      - name: "lat"
+        dtype: "float"
+        required: true
+      - name: "long"
+        dtype: "float"
+        required: true
+      - name: "city_pop"
+        dtype: "int"
+        required: true
+      - name: "job"
+        dtype: "str"
+        required: true
+      - name: "dob"
+        dtype: "str"
+        required: true
+      - name: "trans_num"
+        dtype: "str"
+        required: true
+      - name: "unix_time"
+        dtype: "int"
+        required: true
+      - name: "merch_lat"
+        dtype: "float"
+        required: true
+      - name: "merch_long"
+        dtype: "float"
+        required: true
+      - name: "is_fraud"
+        dtype: "int"
+        required: true
+
+inference:
+  input_csv: "data/raw/fraudTest.csv"
+  output_csv: "data/inference/output_predictions.csv"
+  threshold: 0.5
+
+  

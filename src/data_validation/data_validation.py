@@ -2,7 +2,8 @@ import pandas as pd
 import logging
 import sys
 from typing import Any, List, Dict
-
+from hydra import main
+from omegaconf import DictConfig
 
 class DataValidationError(Exception):
     """Raised when validation fails."""
@@ -113,65 +114,42 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
     logging.info("Validator: Schema validation passed.")
 
 
-if __name__ == "__main__":
-    import argparse
-    import yaml
-
-    parser = argparse.ArgumentParser(
-        description="Validate a CSV file against defined schema in config.yaml"
-    )
-    parser.add_argument(
-        "data_csv",
-        type=str,
-        help="Path to the CSV data file to validate."
-    )
-    parser.add_argument(
-        "config_yaml",
-        type=str,
-        help="Path to the YAML config file containing the schema."
-    )
-    parser.add_argument(
-        "--output_csv",
-        type=str,
-        default=None,
-        help="Optional path to save the data after handling missing values."
-    )
-    args = parser.parse_args()
-
+@main(config_path="../../config", config_name="config", version_base=None)
+def run_validation(cfg: DictConfig):
+    """
+    Hydra entry point for running the data validation pipeline.
+    """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
 
     try:
-        df = pd.read_csv(args.data_csv)
+        df = pd.read_csv(cfg.data_source.raw_path)
     except Exception as e:
         logging.error(f"Failed to load data file: {e}")
         sys.exit(1)
 
-    try:
-        with open(args.config_yaml, "r", encoding="utf-8") as f:
-            config = yaml.safe_load(f)
-    except Exception as e:
-        logging.error(f"Failed to load config file: {e}")
-        sys.exit(1)
+    schema = cfg.data_validation.schema.columns
 
-    schema = config.get("data_validation", {}) \
-        .get("schema", {}) \
-        .get("columns", [])
     try:
         validate_schema(df, schema)
         logging.info("Data validation completed successfully.")
         df = handle_missing_values(df)
-        if args.output_csv:
-            df.to_csv(args.output_csv, index=False)
-            logging.info(
-                "Data with missing values handled saved to %s",
-                args.output_csv
-            )
+
+        if cfg.data_validation.get("output_path"):
+            df.to_csv(cfg.data_validation.output_path, index=False)
+            logging.info("Data with missing values handled saved to %s", cfg.data_validation.output_path)
+            logging.info(f"File successfully saved to: {cfg.data_validation.output_path}")
+
     except DataValidationError as e:
         logging.error(f"Data validation failed: {e}")
         sys.exit(1)
     except Exception as e:
         logging.error(f"Error during missing value handling: {e}")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    run_validation()
+
