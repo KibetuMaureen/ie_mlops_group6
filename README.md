@@ -226,6 +226,7 @@ We are a team of Data Science students that developed this project as part of th
 | <img src="https://github.com/silvana-cortes.png" width="60" height="60"/> | **Silvana Cortés** | [@silvana-cortes](https://github.com/silvana-cortes) |
 | <img src="https://github.com/ignaciosalceda.png" width="60" height="60"/> | **Ignacio Salceda** | [@ignaciosalceda](https://github.com/ignaciosalceda) |
 | <img src="https://github.com/edmonddant.png" width="60" height="60"/> | **Eduardo Martínez-Acha** | [@edmonddant](https://github.com/edmonddant) |
+| <img src="https://github.com/catalinag8.png" width="60" height="60"/> | **Catalina Gaitán** | [@catalinag8](https://github.com/catalinag8) |
 
 ---
 
