@@ -1,0 +1,9 @@
+name: evaluation
+
+entry_points:
+  main:
+    parameters:
+      y_true_path: {type: str}
+      y_pred_path: {type: str}
+    command: >
+      python main.py --y_true_path ${y_true_path} --y_pred_path ${y_pred_path}
