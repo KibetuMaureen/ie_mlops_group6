@@ -34,7 +34,8 @@ jobs:
       - name: Run all unit tests
         shell: bash -l {0}
         run: |
-          PYTHONPATH=src pytest tests/
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          pytest tests/
 
       - name: Run preprocessing
         shell: bash -l {0}
