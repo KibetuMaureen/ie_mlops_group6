@@ -34,7 +34,7 @@ jobs:
       - name: Run all unit tests
         shell: bash -l {0}
         run: |
-          pytest tests/
+          PYTHONPATH=src pytest tests/
 
       - name: Run preprocessing
         shell: bash -l {0}
