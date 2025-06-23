@@ -18,3 +18,5 @@ dependencies:
       - bayesian-optimization
       - pytest
       - pytest-cov
+      - hydra-core
+      - python-dotenv
