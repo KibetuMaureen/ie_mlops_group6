@@ -1,0 +1,61 @@
+name: MLOps CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-train:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies with Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: fraud_detection_env_dev
+          auto-activate-base: false
+
+      - name: Install pip-only dependencies
+        shell: bash -l {0}
+        run: |
+          pip install wandb pytest
+
+      - name: Run all unit tests
+        shell: bash -l {0}
+        run: |
+          pytest tests/
+
+      - name: Run preprocessing
+        shell: bash -l {0}
+        run: |
+          python src/preprocessing/preprocessing.py
+
+      - name: Run feature engineering
+        shell: bash -l {0}
+        run: |
+          python src/features/features.py
+
+      - name: Run training (with W&B logging)
+        shell: bash -l {0}
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          python src/model/train.py
+
+      - name: Upload model artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: trained-model
+          path: models/

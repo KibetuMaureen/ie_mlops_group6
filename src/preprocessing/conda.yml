@@ -1,0 +1,17 @@
+name: preprocessing
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - pandas
+  - hydra-core
+  - omegaconf
+  - python-dotenv
+  - scikit-learn
+  - pyyaml
+  - openpyxl
+  - pip
+  - pip:
+      - wandb

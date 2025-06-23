@@ -1,0 +1,20 @@
+name: model
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - pandas
+  - hydra-core
+  - omegaconf
+  - python-dotenv
+  - pyyaml
+  - openpyxl
+  - scikit-learn
+  - geopy
+  - xgboost
+  - mlflow
+  - pip
+  - pip:
+      - wandb

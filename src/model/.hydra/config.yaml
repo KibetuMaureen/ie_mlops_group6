@@ -1,0 +1,275 @@
+artifacts:
+  model_path: models/model.pkl
+  preprocessing_pipeline: models/preprocessing_pipeline.pkl
+  split_path: data/splits
+data_load:
+  data_stage: raw
+  log_artifacts: true
+  log_sample_artifacts: true
+  log_summary_stats: true
+  output_dir: outputs/data
+data_source:
+  delimiter: ','
+  encoding: utf-8
+  features_path: data/features/data_features.csv
+  header: 0
+  preprocessed_path: data/processed/preprocessed.csv
+  processed_path: data/processed/data_processed.csv
+  raw_path: C:\Users\Wambui\Documents\MBD SCHOOL WORK\TERM 3\ML Ops\MLOPS project
+    files\ie_mlops_group6\data\raw\fraudTrain.csv
+  sheet_name: Sheet1
+  type: csv
+data_split:
+  random_state: 42
+  test_size: 0.2
+  valid_size: 0.0
+data_validation:
+  action_on_error: raise
+  enabled: true
+  report_path: logs/validation_report.json
+  schema:
+    columns:
+    - dtype: str
+      name: trans_date_trans_time
+      required: true
+    - dtype: int
+      name: cc_num
+      required: true
+    - dtype: str
+      name: merchant
+      required: true
+    - dtype: str
+      name: category
+      required: true
+    - dtype: float
+      name: amt
+      required: true
+    - dtype: str
+      name: first
+      required: true
+    - dtype: str
+      name: last
+      required: true
+    - dtype: str
+      name: gender
+      required: true
+    - dtype: str
+      name: street
+      required: true
+    - dtype: str
+      name: city
+      required: true
+    - dtype: str
+      name: state
+      required: true
+    - dtype: int
+      name: zip
+      required: true
+    - dtype: float
+      name: lat
+      required: true
+    - dtype: float
+      name: long
+      required: true
+    - dtype: int
+      name: city_pop
+      required: true
+    - dtype: str
+      name: job
+      required: true
+    - dtype: str
+      name: dob
+      required: true
+    - dtype: str
+      name: trans_num
+      required: true
+    - dtype: int
+      name: unix_time
+      required: true
+    - dtype: float
+      name: merch_lat
+      required: true
+    - dtype: float
+      name: merch_long
+      required: true
+    - dtype: int
+      name: is_fraud
+      required: true
+features:
+  categorical:
+  - category
+  - gender
+  continuous:
+  - amt
+  - city_pop
+  - age
+  - geo_distance
+  engineered:
+  - amt
+  - city_pop
+  - hour
+  - day
+  - month
+  - geo_distance
+  - day_of_week
+  - age
+  - category
+  - gender
+inference:
+  input_csv: data/raw/fraudTest.csv
+  output_csv: data/inference/output_predictions.csv
+  threshold: 0.5
+logging:
+  datefmt: '%Y-%m-%d %H:%M:%S'
+  format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+  level: INFO
+  log_file: ./logs/main.log
+main:
+  WANDB_ENTITY: mwkibetu-student-profile
+  WANDB_PROJECT: credit-card-fraud-detection
+  hydra_options: ''
+  steps: all
+metrics:
+- Accuracy
+- Precision
+- Recall
+- F1 Score
+- ROC AUC
+model:
+  active: xgboost
+  decision_tree:
+    bayesian_optimization:
+      enabled: true
+      init_points: 5
+      n_iter: 20
+      random_state: 42
+      search_space:
+        max_depth:
+        - 3
+        - 10
+        min_samples_leaf:
+        - 1
+        - 5
+        min_samples_split:
+        - 2
+        - 10
+    params:
+      class_weight: balanced
+      criterion: entropy
+      max_depth: 6
+      min_samples_leaf: 1
+      min_samples_split: 3
+      random_state: 42
+    save_path: models/decision_tree.pkl
+  random_forest:
+    bayesian_optimization:
+      enabled: true
+      init_points: 5
+      n_iter: 20
+      random_state: 42
+      search_space:
+        max_depth:
+        - 3
+        - 10
+        min_samples_leaf:
+        - 1
+        - 5
+        min_samples_split:
+        - 2
+        - 10
+        n_estimators:
+        - 50
+        - 200
+    params:
+      class_weight: balanced
+      criterion: entropy
+      max_depth: 6
+      min_samples_leaf: 2
+      min_samples_split: 5
+      n_estimators: 100
+      n_jobs: -1
+      random_state: 42
+    save_path: models/random_forest.pkl
+  xgboost:
+    bayesian_optimization:
+      enabled: true
+      init_points: 5
+      n_iter: 20
+      random_state: 42
+      search_space:
+        colsample_bytree:
+        - 0.6
+        - 1.0
+        gamma:
+        - 0
+        - 5
+        learning_rate:
+        - 0.01
+        - 0.3
+        max_depth:
+        - 3
+        - 10
+        n_estimators:
+        - 100
+        - 400
+        reg_alpha:
+        - 0
+        - 1
+        reg_lambda:
+        - 0
+        - 5
+        subsample:
+        - 0.6
+        - 1.0
+    params:
+      colsample_bytree: 0.8
+      gamma: 0
+      learning_rate: 0.1
+      max_depth: 6
+      n_estimators: 200
+      random_state: 42
+      reg_alpha: 0
+      reg_lambda: 1
+      scale_pos_weight: 10
+      subsample: 0.8
+    save_path: models/xgboost.pkl
+preprocessing:
+  age:
+    normalization: minmax
+  amt:
+    normalization: minmax
+  label_encode:
+  - category
+  - gender
+  numeric:
+  - amt
+  - lat
+  - long
+  - merch_lat
+  - merch_long
+  - hour
+  - day
+  - month
+  - day_of_week
+  - is_weekend
+  - age
+  - geo_distance
+  rename_columns:
+    dob: dob
+    trans_date_trans_time: trans_date_trans_time
+raw_features:
+- trans_date_trans_time
+- category
+- amt
+- gender
+- city
+- state
+- zip
+- lat
+- long
+- city_pop
+- job
+- dob
+- merch_lat
+- merch_long
+target: is_fraud

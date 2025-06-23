@@ -1,5 +1,4 @@
 #gitignore for a Python project
-.gitignore
 
 #project notes
 notes.md
@@ -37,7 +36,6 @@ pip-wheel-metadata/
 logs/
 *.log
 
-
 # Test, split, and processed data (if/when added)
 data/*
 !data/.gitkeep
@@ -56,3 +54,11 @@ htmlcov
 # VSCode and other IDE config
 .vscode/
 .idea/
+
+# Mlflow and WandB tracking files
+mlruns/
+wandb/
+
+# Hydra outputs
+outputs/
+/data
