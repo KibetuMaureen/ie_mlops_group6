@@ -29,11 +29,15 @@ def load_data(path: str, delimiter: str, header: int, encoding: str) -> pd.DataF
 
 @hydra.main(config_path="../../", config_name="config", version_base=None)
 
+from hydra.utils import to_absolute_path
+
+
 def main(cfg: DictConfig):
     load_dotenv(override=True)  # Load environment variables
 
     # Determine data path based on what's needed
-    path = cfg.data_source.raw_path
+    path = to_absolute_path(cfg.data_source.raw_path)
+
     delimiter = cfg.data_source.delimiter
     header = cfg.data_source.header
     encoding = cfg.data_source.encoding
