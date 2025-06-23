@@ -4,6 +4,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from omegaconf import DictConfig
 import hydra
+from hydra.utils import to_absolute_path
 
 # Set up top-level logging
 logging.basicConfig(
@@ -29,7 +30,7 @@ def load_data(path: str, delimiter: str, header: int, encoding: str) -> pd.DataF
 
 @hydra.main(config_path="../../", config_name="config", version_base=None)
 
-from hydra.utils import to_absolute_path
+
 
 
 def main(cfg: DictConfig):
