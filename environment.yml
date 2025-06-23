@@ -1,8 +1,9 @@
 name: fraud_detection_env_dev
 channels:
   - defaults
+  - conda-forge
 dependencies:
-  - python=3.8
+  - python
   - pandas
   - numpy
   - scikit-learn
@@ -13,10 +14,15 @@ dependencies:
   - geopy
   - pyyaml
   - jupyterlab
+  - python-dotenv
   - pip
   - pip:
       - bayesian-optimization
       - pytest
       - pytest-cov
+      - wandb
+      - mlflow-skinny
       - hydra-core
-      - python-dotenv
+      - omegaconf
+      - pydantic
+      - pydantic_core

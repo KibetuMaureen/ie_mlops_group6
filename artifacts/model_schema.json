@@ -1,0 +1,23 @@
+'Unnamed: 0': int64
+amt: float64
+category: object
+cc_num: int64
+city: object
+city_pop: int64
+dob: object
+first: object
+gender: object
+is_fraud: int64
+job: object
+last: object
+lat: float64
+long: float64
+merch_lat: float64
+merch_long: float64
+merchant: object
+state: object
+street: object
+trans_date_trans_time: object
+trans_num: object
+unix_time: int64
+zip: int64

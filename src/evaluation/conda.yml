@@ -1,0 +1,19 @@
+name: evaluation
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - pandas
+  - hydra-core
+  - omegaconf
+  - python-dotenv
+  - pyyaml
+  - openpyxl
+  - xgboost
+  - geopy
+  - scikit-learn
+  - pip
+  - pip:
+      - wandb

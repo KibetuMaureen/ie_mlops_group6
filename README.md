@@ -1,5 +1,7 @@
 # Credit Card Fraud Detection - Production-Ready MLOps Pipeline
 
+![CI](https://github.com/KibetuMaureen/ie_mlops_group6/actions/workflows/ci.yml/badge.svg)
+
 A modular, production-ready MLOps pipeline designed to detect fraudulent credit card transactions using robust and reproducible machine learning practices. This solution adheres to modern MLOps standards, enabling scalability, automation, and reliable deployment.
 
 ---
@@ -15,6 +17,7 @@ A modular, production-ready MLOps pipeline designed to detect fraudulent credit 
 - [🚀 How to Run?](#how-to-run)
 - [🔄 Pipeline Stages](#pipeline-stages)
 - [🧪 Testing](#testing)
+- [🔁 CI/CD and MLOps Integration](#cicd-and-mlops-integration)
 - [🔮 Inference](#inference)
 - [📊 Model Evaluation](#model-evaluation)
 - [🛠️ Configuration](#configuration)
@@ -47,6 +50,14 @@ Credit card fraud detection is a critical challenge for financial institutions. 
 
 * Designed for seamless deployment and scaling
 
+* Hydra-based configuration management with modular, overrideable YAML files
+
+* CLI overrides for quick experimentation (`python script.py param=value`)
+
+* W&B integration for experiment tracking and artifact logging
+
+* GitHub Actions CI pipeline with automated testing, training, and model artifact upload
+
 ---
 
 ## Project Structure
@@ -54,23 +65,58 @@ Credit card fraud detection is a critical challenge for financial institutions. 
 ```
 ie_mlops_group6/
 │
-├── config.yaml                # Main configuration file
-├── environment.yml            # Conda environment with dependencies
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # GitHub Actions CI pipeline definition
+│
+├── conf/
+│   └── config.yaml                   # Hydra-compatible centralized config
+│
 ├── data/
-│   └── raw/                   # Raw data files (e.g., fraudTrain.csv)
-├── models/                    # Saved models and metrics
-├── logs/                      # Log files and validation reports
-├── src/                        # Source code for the pipeline
-│   ├── main.py                 # Pipeline entry point with CLI
-│   ├── data_loader/            # Data loading utilities
-│   ├── data_validation/        # Schema and input validation
-│   ├── evaluation/             # Model evaluation scripts and metrics
-│   ├── features/               # Feature engineering and transformation
-│   ├── inferencer/             # Prediction and inference logic
-│   ├── model/                  # Model training and saving
-│   ├── preprocessing/          # Data preprocessing pipeline
-├── tests/                     # Unit tests
-└── README.md
+│   ├── raw/
+│   │   ├── fraudTrain.csv            # Raw training data
+│   │   └── fraudTest.csv             # Raw inference data
+│   ├── processed/                    # Processed output from preprocessing
+│   ├── features/                     # Engineered features for training
+│   └── inference/                    # Predictions saved here
+│
+├── models/
+│   ├── model.pkl                     # Trained model
+│   ├── metrics.json                  # Evaluation metrics
+│   └── preprocessing_pipeline.pkl    # Saved preprocessing pipeline
+│
+├── logs/
+│   ├── main.log                      # Application logs
+│   └── validation_report.json        # Data validation output
+│
+├── src/
+│   ├── main.py                       # Optional high-level entry point (if kept)
+│   ├── preprocessing/
+│   │   └── preprocessing.py          # Data preprocessing pipeline
+│   ├── features/
+│   │   └── features.py               # Feature engineering logic
+│   ├── model/
+│   │   └── train.py                  # Model training logic (Hydra + W&B)
+│   ├── evaluation/
+│   │   └── evaluate.py               # Model evaluation script
+│   ├── inferencer/
+│   │   └── infer.py                  # Run inference using saved model
+│   ├── data_loader/
+│   │   └── loader.py                 # Data loading utilities
+│   ├── data_validation/
+│   │   └── validate.py               # Schema validation logic
+│
+├── tests/
+│   ├── test_preprocessing.py         # Unit tests for preprocessing
+│   ├── test_features.py              # Unit tests for feature engineering
+│   ├── test_train.py                 # Unit tests for training logic
+│   └── ...                           # Other module-specific tests
+│
+├── environment.yml                  # Conda environment (includes W&B, Hydra)
+├── requirements.txt (optional)     # For pip-only workflows
+├── README.md                        # Project overview and usage
+├── MLproject (optional)            # MLflow compatibility if used
+└── .gitignore
 ```
 
 ---
@@ -127,10 +173,21 @@ DeepWiki provides:
 2. **Run the pipeline:**
 
     ```bash
-    python -m src.main --config config.yaml --stage all
+    python -m src.main python src/preprocessing/preprocessing.py
+    python src/features/features.py
+    python src/model/train.py  # Logs to W&B
     ```
 
     - Use `--stage data` to only load and validate data.
+
+3. Log into [Weights & Biases](https://wandb.ai) and get your API key:
+    ```bash
+    wandb login
+    ```
+
+4. Add your raw dataset files:
+    - `fraudTrain.csv` for training
+    - `fraudTest.csv` for inference
     
 ---
 
@@ -160,6 +217,20 @@ Run all tests with:
 ```bash
 pytest tests/
 ```
+
+---
+
+## 🔁 CI/CD and MLOps Integration
+
+This project includes a CI pipeline using **GitHub Actions**, which automatically:
+
+- Runs all unit tests
+- Executes preprocessing and feature engineering
+- Trains a model using Hydra-managed config
+- Logs metrics and config to [Weights & Biases (W&B)](https://wandb.ai)
+- Uploads trained model artifacts
+
+> CI is triggered on every push and pull request to `main`.
 
 ---
 
