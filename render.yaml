@@ -3,7 +3,7 @@ services:
     name: mlops-orchestrator
     env: docker
     plan: free
-    autoDeploy: true
+    autoDeploy: false
     region: oregon
     buildCommand: ""
     startCommand: "python main.py"
