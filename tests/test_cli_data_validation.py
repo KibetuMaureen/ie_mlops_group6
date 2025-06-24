@@ -1,5 +1,16 @@
 import subprocess
 import os
+import pytest
+
+DATA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    "data", "raw", "fraudTrain.csv"
+)
+
+@pytest.mark.skipif(
+    not os.path.isfile(DATA_PATH),
+    reason="Test data not available in CI"
+)
 
 def test_validator_cli_success(tmp_path):
     # Prepare paths

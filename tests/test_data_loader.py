@@ -18,6 +18,15 @@ CONFIG_PATH = os.path.abspath(
 )
 
 
+RAW_DATA_PATH = None
+if os.path.isfile(CONFIG_PATH):
+    try:
+        with open(CONFIG_PATH) as f:
+            config = yaml.safe_load(f)
+        RAW_DATA_PATH = config.get("data_source", {}).get("raw_path")
+    except Exception:
+        pass
+
 def test_load_config_success():
     """Test successful loading of a valid config file."""
     assert os.path.isfile(CONFIG_PATH), f"{CONFIG_PATH} not found"
@@ -71,6 +80,10 @@ def test_load_data_missing_file():
         load_data(path="nonexistent.csv")
 
 
+@pytest.mark.skipif(
+    not (RAW_DATA_PATH and os.path.isfile(RAW_DATA_PATH)),
+    reason="Raw data file not available"
+)
 def test_get_data_success():
     """Test successful full data retrieval through get_data()."""
     if not os.path.isfile(CONFIG_PATH):
