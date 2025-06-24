@@ -258,3 +258,5 @@ inference:
   input_csv: "data/raw/fraudTest.csv"
   output_csv: "data/inference/output_predictions.csv"
   threshold: 0.5
+  
+
