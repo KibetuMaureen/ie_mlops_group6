@@ -180,6 +180,21 @@ DeepWiki provides:
 
     - Use `--stage data` to only load and validate data.
 
+    **Or run the entire pipeline using MLflow:**
+
+    ```bash
+    mlflow run .
+    ```
+
+    - use the steps below to run the project step by step
+
+    ```bash
+    mlflow run . -P steps="data_loader"
+    mlflow run . -P steps="preprocessing"
+    mlflow run . -P steps="model"
+    mlflow run . -P steps="inferencer"
+    ```
+    
 3. Log into [Weights & Biases](https://wandb.ai) and get your API key:
     ```bash
     wandb login
