@@ -36,27 +36,3 @@ jobs:
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)/src
           pytest tests/
-
-      - name: Run preprocessing
-        shell: bash -l {0}
-        run: |
-          python src/preprocessing/preprocessing.py
-
-      - name: Run feature engineering
-        shell: bash -l {0}
-        run: |
-          python src/features/features.py
-
-      - name: Run training (with W&B logging)
-        shell: bash -l {0}
-        env:
-          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-        run: |
-          python src/model/train.py
-
-      - name: Upload model artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: trained-model
-          path: models/
