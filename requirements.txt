@@ -1,9 +1,10 @@
 numpy==1.26.4
 pandas==2.2.2
 python-dateutil==2.9.0.post0
-pytz==2025.2
+pytz==2023.3
 scipy==1.11.4
 six==1.17.0
 tzdata==2025.2
 xgboost==3.0.2
 mlflow==2.12.1
+
