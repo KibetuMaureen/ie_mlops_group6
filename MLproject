@@ -1,5 +1,5 @@
 name: fraud_detection
-conda_env: conda.yml           # Re-creates the same env you already use
+ # Re-creates the same env you already use
 #conda_env: environment.yml
 # ─────────────────────────────────────────────────────────────
 #  Entry-points
