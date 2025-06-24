@@ -7,6 +7,12 @@ services:
     region: oregon
     buildCommand: ""
     startCommand: "python main.py"
+    envVars:
+      - key: WANDB_PROJECT
+        value: your_wandb_project_name
+      - key: WANDB_ENTITY
+        value: your_wandb_username_or_team
+
 
 
 
