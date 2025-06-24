@@ -70,7 +70,7 @@ def validate_schema(
                 )
                 raise DataValidationError(
                     f"Column '{name}' has {missing_count} missing values"
-                    "(required)."
+                    " (required)."
                 )
             else:
                 logging.warning(
