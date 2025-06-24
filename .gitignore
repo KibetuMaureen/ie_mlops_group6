@@ -39,7 +39,8 @@ logs/
 # Test, split, and processed data (if/when added)
 data/*
 !data/.gitkeep
-!data/raw
+!data/raw/fraudTest.csv
+!data/raw/fraudTrain.csv
 
 # OS files
 .DS_Store
