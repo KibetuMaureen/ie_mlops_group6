@@ -1,24 +1,30 @@
+"""Feature engineering run script using Hydra and WandB.
+
+Loads validated data artifact, applies feature engineering,
+saves processed data, and logs results to WandB.
+"""
+
 import sys
 import logging
 import os
+import json
 from datetime import datetime
 from pathlib import Path
 import tempfile
 
 import hydra
-import wandb
 from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv
 import pandas as pd
-import json
+import wandb
 
-# Ensure project modules are importable when executed via MLflow
+# Set project root and add src to sys.path for imports
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from features.features import add_engineered_features, calculate_distance
+from features.features import add_engineered_features
 
 load_dotenv()
 
@@ -30,8 +36,16 @@ logging.basicConfig(
 logger = logging.getLogger("feature_eng")
 
 
-@hydra.main(config_path=str(PROJECT_ROOT), config_name="config", version_base=None)
+@hydra.main(
+        config_path=str(PROJECT_ROOT),
+        config_name="config",
+        version_base=None)
 def main(cfg: DictConfig) -> None:
+    """Main feature engineering workflow.
+
+    Args:
+        cfg (DictConfig): Configuration loaded by Hydra.
+    """
     cfg_dict = OmegaConf.to_container(cfg, resolve=True)
 
     dt_str = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -71,13 +85,14 @@ def main(cfg: DictConfig) -> None:
         df_feat.head(50).to_csv(sample_path, index=False)
         schema = {c: str(t) for c, t in df_feat.dtypes.items()}
         schema_path = processed_path.parent / "engineered_schema.json"
-        with open(schema_path, "w") as f:
+        with open(schema_path, "w", encoding="utf-8") as f:
             json.dump(schema, f, indent=2)
 
         # Log artifacts to W&B
         if cfg.data_load.get("log_artifacts", True):
             artifact = wandb.Artifact(
-                "engineered_data", type="dataset"
+                "engineered_data",
+                type="dataset",
             )
             artifact.add_file(str(processed_path))
             artifact.add_file(str(sample_path))
@@ -89,13 +104,15 @@ def main(cfg: DictConfig) -> None:
             sample_tbl = wandb.Table(dataframe=df_feat.head(50))
             wandb.log({"processed_sample_rows": sample_tbl})
 
-        wandb.summary.update({
-            "n_rows": df_feat.shape[0],
-            "n_cols": df_feat.shape[1],
-            "columns": list(df_feat.columns)
-        })
+        wandb.summary.update(
+            {
+                "n_rows": df_feat.shape[0],
+                "n_cols": df_feat.shape[1],
+                "columns": list(df_feat.columns),
+            }
+        )
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.exception("Failed during feature engineering step")
         if run is not None:
             run.alert(title="Feature Eng Error", text=str(e))
@@ -107,4 +124,4 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pylint: disable=no-value-for-parameter

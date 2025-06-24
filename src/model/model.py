@@ -3,43 +3,40 @@ Model training pipeline with:
  - modular components, preprocessing,
  - optional Bayesian optimization,
  - configurable artifact paths.
-
-NOTE: This version expects build_preprocessing_pipeline (from preprocessing.py) to handle both numeric and categorical columns, encoding all categoricals to numeric (e.g., via OneHotEncoder or OrdinalEncoder). All features passed to the model must be numeric.
 """
 
+import logging
+import os
+import pickle
 import sys
 from pathlib import Path
+from typing import Any, Dict, Tuple
 
-# --- Ensure src is on sys.path for absolute imports ---
-SRC_ROOT = Path(__file__).resolve().parents[1]
-if str(SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(SRC_ROOT))
-
-import os
-import yaml
-import logging
-import pickle
-
-from typing import Dict, Any, Tuple
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+import xgboost as xgb
+import yaml
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-import xgboost as xgb
+from sklearn.tree import DecisionTreeClassifier
 
-
+from evaluation.evaluator_sklearn import evaluate_model
+from features.features import add_engineered_features
 from preprocessing.preprocessing import (
     build_preprocessing_pipeline,
     get_output_feature_names,
 )
-from features.features import add_engineered_features
-from evaluation.evaluator_sklearn import evaluate_model
 
 # Optional import for Bayesian Optimization
 try:
     from bayes_opt import BayesianOptimization
 except ImportError:
     BayesianOptimization = None
+
+# --- Ensure src is on sys.path for absolute imports ---
+SRC_ROOT = Path(__file__).resolve().parents[1]
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,9 +74,6 @@ def split_data(df: pd.DataFrame, config: Dict[str, Any]) -> Tuple:
     """
     target = config["target"]
     split_cfg = config["data_split"]
-    
-    # Do not drop columns here. Feature selection will happen in the preprocessing pipeline.
-    # This ensures that columns required for feature engineering are available.
     X = df.drop(columns=[target], errors='ignore')
     y = df[target]
 
@@ -284,7 +278,7 @@ def run_model_pipeline(df: pd.DataFrame, config: Dict[str, Any]):
     """
     Complete training pipeline including preprocessing, training,
     optional hyperparameter optimization, and evaluation.
-    
+
     Returns:
         The trained model and the preprocessing pipeline.
     """
@@ -377,7 +371,7 @@ def run_model_pipeline(df: pd.DataFrame, config: Dict[str, Any]):
 
         return model, preprocessor
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.exception("Model training pipeline failed")
         raise
 
@@ -389,7 +383,7 @@ if __name__ == "__main__":
     )
 
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config.yaml"
-    with open(config_path, "r") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     try:

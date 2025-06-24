@@ -7,11 +7,11 @@ Modular data ingestion utility for CSV and Excel files.
 
 import os
 import logging
+from pathlib import Path
 
 import pandas as pd
 import yaml
 from dotenv import load_dotenv
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -135,8 +135,10 @@ def get_data(
         )
     base_dir = Path(config_path).resolve().parent
     resolved_path = (
-        base_dir / path).resolve() if not Path(path).is_absolute() else Path(path)
-    
+        (base_dir / path).resolve()
+        if not Path(path).is_absolute()
+        else Path(path)
+    )
     df = load_data(
         path=str(resolved_path),
         delimiter=data_cfg.get("delimiter", ","),
@@ -154,5 +156,5 @@ if __name__ == "__main__":
     try:
         df = get_data(data_stage="raw")
         logging.info("Data loaded successfully. Shape: %s", df.shape)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logging.exception("Failed to load data: %s", e)

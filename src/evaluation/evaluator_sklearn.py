@@ -1,3 +1,11 @@
+"""
+Evaluate classification model performance using scikit-learn metrics.
+
+Provides a function to calculate accuracy, precision, recall, F1-score,
+ROC AUC, and confusion matrix from true and predicted labels.
+"""
+
+
 import logging
 from sklearn.metrics import (
     accuracy_score,
@@ -38,7 +46,7 @@ def evaluate_model(y_true, y_pred):
 
         try:
             auc = roc_auc_score(y_true, y_pred)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             auc = None
 
         auc_str = f"{auc:.4f}" if auc is not None else "N/A"

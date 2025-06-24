@@ -1,39 +1,46 @@
-import pandas as pd
+"""Data validation utilities for fraud detection pipeline."""
+
 import logging
 import sys
 from typing import Any, List, Dict
+import pandas as pd
 
 
 class DataValidationError(Exception):
     """Raised when validation fails."""
-    pass
+    # No need for pass statement
 
 
-def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
+def handle_missing_values(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Handle missing values using forward fill then backward fill.
     """
-    df = df.copy()
-    df.fillna(method='ffill', inplace=True)
-    df.fillna(method='bfill', inplace=True)
+    df_copy = dataframe.copy()
+    df_copy.fillna(method='ffill', inplace=True)
+    df_copy.fillna(method='bfill', inplace=True)
     logging.info("Missing values handled in data_validation.")
-    return df
+    return df_copy
 
 
-def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
+def validate_schema(
+        dataframe: pd.DataFrame,
+        schema_def: List[Dict[str, Any]]
+) -> None:
     """
     Validate a DataFrame against schema definitions from the YAML config.
 
     Args:
-        df (pd.DataFrame): Data to validate.
-        schema (list of dict): Schema rules from config.yaml.
+        dataframe (pd.DataFrame): Data to validate.
+        schema_def (list of dict): Schema rules from config.yaml.
 
     Raises:
         DataValidationError: If validation checks fail.
     """
     logging.info("Validator: Starting schema validation...")
 
-    for column in schema:
+    dtype_map = {"int": int, "float": float, "str": str}
+
+    for column in schema_def:
         name = column["name"]
         dtype = column.get("dtype")
         required = column.get("required", False)
@@ -41,18 +48,19 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
         min_val = column.get("min")
 
         # Check for required columns
-        if required and name not in df.columns:
-            logging.error(f"Missing required column: {name}")
+        if required and name not in dataframe.columns:
+            logging.error("Missing required column: %s", name)
             raise DataValidationError(f"Missing required column: {name}")
 
-        if name not in df.columns:
+        if name not in dataframe.columns:
             logging.warning(
-                f"Column '{name}' not found in DataFrame, skipping."
+                "Column '%s' not found in DataFrame, skipping.",
+                name
             )
             continue
 
         # Check for missing values
-        missing_count = df[name].isnull().sum()
+        missing_count = dataframe[name].isnull().sum()
         if missing_count > 0:
             if required:
                 logging.error(
@@ -61,7 +69,8 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
                     missing_count
                 )
                 raise DataValidationError(
-                    f"Column '{name}' has {missing_count} missing values (required)."
+                    f"Column '{name}' has {missing_count} missing values"
+                    "(required)."
                 )
             else:
                 logging.warning(
@@ -72,14 +81,16 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
 
         # Check data type
         if dtype:
-            expected_type = {"int": int, "float": float, "str": str}.get(dtype)
+            expected_type = dtype_map.get(dtype)
             if expected_type:
-                type_check = df[name].map(
+                type_check = dataframe[name].map(
                     lambda x: isinstance(x, expected_type) or pd.isnull(x)
                 ).all()
                 if not type_check:
                     logging.error(
-                        f"Column '{name}' has incorrect type. Expected {dtype}"
+                        "Column '%s' has incorrect type. Expected %s",
+                        name,
+                        dtype
                     )
                     raise DataValidationError(
                         f"Column '{name}' has incorrect type. Expected {dtype}"
@@ -87,12 +98,13 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
 
         # Check allowed values
         if allowed:
-            invalid_mask = ~df[name].isin(allowed)
+            invalid_mask = ~dataframe[name].isin(allowed)
             invalid_count = invalid_mask.sum()
             if invalid_count > 0:
                 logging.error(
-                    f"Column '{name}' contains {invalid_count} values "
-                    f"outside of allowed set."
+                    "Column '%s' contains %d values outside of allowed set.",
+                    name,
+                    invalid_count
                 )
                 raise DataValidationError(
                     f"Column '{name}' contains values outside of allowed set."
@@ -100,11 +112,13 @@ def validate_schema(df: pd.DataFrame, schema: List[Dict[str, Any]]) -> None:
 
         # Check minimum value
         if min_val is not None:
-            below_min = (df[name] < min_val).sum()
+            below_min = (dataframe[name] < min_val).sum()
             if below_min > 0:
                 logging.error(
-                    f"Column '{name}' has {below_min} values below minimum "
-                    f"of {min_val}."
+                    "Column '%s' has %d values below minimum of %s.",
+                    name,
+                    below_min,
+                    min_val
                 )
                 raise DataValidationError(
                     f"Column '{name}' has values below minimum of {min_val}."
@@ -144,34 +158,36 @@ if __name__ == "__main__":
     )
 
     try:
-        df = pd.read_csv(args.data_csv)
-    except Exception as e:
-        logging.error(f"Failed to load data file: {e}")
+        dataframe = pd.read_csv(args.data_csv)
+    except (OSError, pd.errors.ParserError) as e:
+        logging.error("Failed to load data file: %s", e)
         sys.exit(1)
 
     try:
         with open(args.config_yaml, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
-    except Exception as e:
-        logging.error(f"Failed to load config file: {e}")
+    except (OSError, yaml.YAMLError) as e:
+        logging.error("Failed to load config file: %s", e)
         sys.exit(1)
 
-    schema = config.get("data_validation", {}) \
-        .get("schema", {}) \
+    schema_columns = (
+        config.get("data_validation", {})
+        .get("schema", {})
         .get("columns", [])
+    )
     try:
-        validate_schema(df, schema)
+        validate_schema(dataframe, schema_columns)
         logging.info("Data validation completed successfully.")
-        df = handle_missing_values(df)
+        dataframe = handle_missing_values(dataframe)
         if args.output_csv:
-            df.to_csv(args.output_csv, index=False)
+            dataframe.to_csv(args.output_csv, index=False)
             logging.info(
                 "Data with missing values handled saved to %s",
                 args.output_csv
             )
     except DataValidationError as e:
-        logging.error(f"Data validation failed: {e}")
+        logging.error("Data validation failed: %s", e)
         sys.exit(1)
-    except Exception as e:
-        logging.error(f"Error during missing value handling: {e}")
+    except Exception as e:  # pylint: disable=broad-except
+        logging.error("Error during missing value handling: %s", e)
         sys.exit(1)

@@ -163,6 +163,19 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
 
 # CLI entry point
 def main() -> None:
+    """
+    Parse command-line arguments and run batch inference on data.
+
+    Expects three positional arguments:
+    1. Path to raw input CSV file with data for inference.
+    2. Path to config YAML file specifying model parameters.
+    3. Path to output CSV file for saving predictions.
+
+    Parses arguments and calls run_inference with them.
+
+    Returns:
+        None
+    """
     parser = argparse.ArgumentParser(
         description="Run batch inference on a CSV file")
     parser.add_argument("input_csv", help="Path to raw input CSV")
@@ -175,4 +188,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    

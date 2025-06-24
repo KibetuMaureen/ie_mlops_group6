@@ -175,4 +175,4 @@ def main(cfg: DictConfig) -> None:
             logger.info("WandB run finished")
 
 if __name__ == "__main__":
-    main()
+    main()  # pylint: disable=no-value-for-parameter

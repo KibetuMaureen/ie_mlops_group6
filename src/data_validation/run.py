@@ -1,25 +1,33 @@
 """
 data_validation/run.py
 
-MLflow-compatible, modular data validation step with Hydra config, W&B logging, and robust error handling.
+MLflow-compatible
+Modular data validation step with Hydra config
+W&B logging
 """
 
-import sys
 import logging
 import os
-import hydra
-import wandb
-from omegaconf import DictConfig
+import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
-from dotenv import load_dotenv
-import json
-import yaml
+
+import hydra
 import pandas as pd
-import tempfile
+import yaml
+from dotenv import load_dotenv
+from omegaconf import DictConfig
+
+import wandb
+
 
 # Import the validation functions from data_validation.py
-from data_validation import validate_schema, handle_missing_values, DataValidationError
+from data_validation import (
+    validate_schema,
+    handle_missing_values,
+    DataValidationError
+)
 
 load_dotenv()
 
@@ -32,8 +40,24 @@ logger = logging.getLogger("data_validation")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-@hydra.main(config_path=str(PROJECT_ROOT), config_name="config", version_base=None)
+
+@hydra.main(config_path=str(PROJECT_ROOT), config_name="config")
 def main(cfg: DictConfig) -> None:
+    """
+    Main entry point for the data validation pipeline.
+
+    This function performs the following steps:
+    1. Initializes a Weights & Biases (W&B) run for experiment tracking.
+    2. Loads the latest raw data artifact from W&B.
+    3. Validates the data schema using rules from a YAML config file.
+    4. Handles missing values if validation passes.
+    5. Logs the validated dataset back to W&B as an artifact.
+    6. Updates W&B summary metrics based on validation results.
+    7. Handles and logs any validation errors or unexpected exceptions.
+
+    Args:
+        cfg (DictConfig): Hydra config object with parameters from config file
+    """
     config_path = PROJECT_ROOT / "config.yaml"
 
     dt_str = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -73,8 +97,9 @@ def main(cfg: DictConfig) -> None:
             logger.info("Data validation completed successfully.")
             df = handle_missing_values(df)
         except DataValidationError as e:
-            logger.error(f"Data validation failed: {e}")
-            wandb.summary.update({"validation_result": "failed", "validation_error": str(e)})
+            logger.error("Data validation failed: %s", e)
+            wandb.summary["validation_result"] = "failed"
+            wandb.summary["validation_error"] = str(e)
             sys.exit(1)
 
         # Save validated data to a temporary CSV and log to W&B
@@ -94,7 +119,7 @@ def main(cfg: DictConfig) -> None:
             "columns": list(df.columns)
         })
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.exception("Failed during data validation step")
         if run is not None:
             run.alert(title="Data Validation Error", text=str(e))
@@ -104,5 +129,6 @@ def main(cfg: DictConfig) -> None:
             wandb.finish()
             logger.info("WandB run finished")
 
+
 if __name__ == "__main__":
-    main()  
+    main()  # pylint: disable=no-value-for-parameter
