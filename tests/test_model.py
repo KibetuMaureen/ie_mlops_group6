@@ -59,6 +59,7 @@ def minimal_config(tmp_path):
             "numeric": ["amt", "city_pop"]
         },
         "model": {
+            "name": "decision_tree",
             "active": "decision_tree",
             "decision_tree": {
                 "params": {"max_depth": 3},

@@ -68,7 +68,7 @@ def test_build_preprocessing_pipeline_transform():
 
     # Fit-transform and verify output shape
     result = pipeline.fit_transform(df)
-    assert result.shape == (4, 2)  # 1 numeric + 1 passthrough
+    assert result.shape == (4, 1)  # 1 numeric, passthrough is dropped
 
 
 def test_get_output_feature_names():
@@ -108,8 +108,8 @@ def test_get_output_feature_names():
     output_features = get_output_feature_names(pipeline, list(df.columns),
                                                config)
 
-    # Expecting index 1 because passthrough uses column index
-    assert output_features == ["num1", 1]
+    # Expecting just num1 as the text column is not in config and is dropped
+    assert output_features == ["num1"]
 
 
 def test_get_output_feature_names_else_branch():
