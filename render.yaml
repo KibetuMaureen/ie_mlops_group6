@@ -1,11 +1,10 @@
-# render.yaml
-
 services:
-  - type: web
-    name: mlops-api
+  - type: worker
+    name: mlops-orchestrator
     env: docker
     plan: free
     autoDeploy: true
     region: oregon
-    buildCommand: ""         # Empty because Dockerfile handles it
-    startCommand: ""         # Same as above, Dockerfile CMD is used
+    buildCommand: ""
+    startCommand: "python main.py"
+
