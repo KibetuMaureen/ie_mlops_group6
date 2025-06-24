@@ -15,8 +15,7 @@ data_source:
   header: 0
   preprocessed_path: data/processed/preprocessed.csv
   processed_path: data/processed/data_processed.csv
-  raw_path: C:\Users\Wambui\Documents\MBD SCHOOL WORK\TERM 3\ML Ops\MLOPS project
-    files\ie_mlops_group6\data\raw\fraudTrain.csv
+  raw_path: data/raw/fraudTrain.csv
   sheet_name: Sheet1
   type: csv
 data_split:
