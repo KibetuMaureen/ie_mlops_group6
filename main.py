@@ -70,9 +70,10 @@ def main(cfg: DictConfig):
 
             print(f"Running step: {step} (W&B run: {run.name})")
             if params:
-                mlflow.run(step_dir, "main", parameters=params)
+                mlflow.run(step_dir, "main", parameters=params, use_conda=False)
             else:
-                mlflow.run(step_dir, "main")
+                mlflow.run(step_dir, "main", use_conda=False)
+
 
     wandb.finish()
 
