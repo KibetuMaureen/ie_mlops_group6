@@ -10,7 +10,7 @@ duplicated_files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
-**.csv
+#**.csv
 **.coverage
 *.py[cod]
 *.so
@@ -36,11 +36,14 @@ pip-wheel-metadata/
 logs/
 *.log
 
+# Hydra outputs
+outputs/
+
 # Test, split, and processed data (if/when added)
-data/*
 !data/.gitkeep
 !data/raw/fraudTest.csv
 !data/raw/fraudTrain.csv
+#data/*
 
 # OS files
 .DS_Store
@@ -59,7 +62,3 @@ htmlcov
 # Mlflow and WandB tracking files
 mlruns/
 wandb/
-
-# Hydra outputs
-outputs/
-/data
