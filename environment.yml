@@ -3,7 +3,7 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python=3.10
+  - python
   - pandas
   - numpy
   - scikit-learn
@@ -25,4 +25,4 @@ dependencies:
       - hydra-core
       - omegaconf
       - pydantic
-      - pydantic_core
+      - pydantic-core

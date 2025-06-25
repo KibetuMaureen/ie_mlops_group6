@@ -85,14 +85,16 @@ def main(cfg: DictConfig):
         model, preprocessor = run_model_pipeline(df, cfg_dict)
 
         # Save and log model artifact
-        model_path = "model.pkl"
+        #model_path = "model.pkl"
+        model_path = PROJECT_ROOT / cfg.artifacts.get("model_path", "models/model.pkl")
         joblib.dump(model, model_path)
         model_art = wandb.Artifact("model", type="model")
         model_art.add_file(model_path)
         run.log_artifact(model_art, aliases=["latest"])
 
         # Save and log preprocessing pipeline artifact
-        preproc_path = "preprocessing_pipeline.pkl"
+        #preproc_path = "preprocessing_pipeline.pkl"
+        preproc_path = PROJECT_ROOT / cfg.artifacts.get("preprocessing_pipeline", "models/preprocessing_pipeline.pkl")
         joblib.dump(preprocessor, preproc_path)
         preproc_art = wandb.Artifact("preprocessing_pipeline", type="pipeline")
         preproc_art.add_file(preproc_path)
