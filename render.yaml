@@ -8,8 +8,4 @@ services:
     buildCommand: ""
     startCommand: "python main.py --stage all --config config.yaml"
     autoRestart: false
-    envVars:
-      - key: WANDB_PROJECT
-        value: credit-card-fraud-detection
-      - key: WANDB_ENTITY
-        value: mwkibetu-student-profile
+  
