@@ -17,7 +17,6 @@ RUN pip install -r requirements.txt
 COPY app/ app/
 COPY src/ src/
 COPY config.yaml .
-COPY models/ models/
 COPY data/ data/
 
 EXPOSE 8000
