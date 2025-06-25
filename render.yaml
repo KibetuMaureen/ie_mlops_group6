@@ -5,14 +5,8 @@ services:
     plan: free
     autoDeploy: false
     region: oregon
-    buildCommand: ""
-    startCommand: "mlflow run ."
     envVars:
       - key: WANDB_PROJECT
-        value: your_wandb_project_name
+        value: credit-card-fraud-detection
       - key: WANDB_ENTITY
-        value: your_wandb_username_or_team
-
-
-
-
+        value: mwkibetu-student-profile
