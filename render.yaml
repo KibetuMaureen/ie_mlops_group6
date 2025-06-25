@@ -3,8 +3,10 @@ services:
     name: mlops-orchestrator
     env: docker
     plan: free
-    autoDeploy: false
+    autoDeploy: true
     region: oregon
+    buildCommand: ""
+    startCommand: "python main.py --stage all --config config.yaml"
     envVars:
       - key: WANDB_PROJECT
         value: credit-card-fraud-detection
