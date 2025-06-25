@@ -14,6 +14,13 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+COPY app/ app/
+COPY src/ src/
+COPY config.yaml .
+COPY models/ models/
+COPY data/ data/
+
 EXPOSE 8000
 
-CMD ["python", "main.py", "python scripts/download_from_wandb.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Default: run FastAPI app for Render
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

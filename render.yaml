@@ -1,11 +1,11 @@
 services:
-  - type: worker
-    name: mlops-orchestrator
-    env: docker
+  - type: web
+    name: credit-card-fraud-api
+    env: python
     plan: free
-    autoDeploy: true
-    region: oregon
-    buildCommand: ""
-    startCommand: "python main.py --stage all --config config.yaml"
-    autoRestart: false
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: WANDB_API_KEY
+        sync: false  # Set in Render dashboard if needed
   

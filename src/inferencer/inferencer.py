@@ -161,6 +161,63 @@ def run_inference(input_csv: str, config_yaml: str, output_csv: str) -> None:
     logger.info("Inference complete")
 
 
+def run_inference_df(df: pd.DataFrame, config: dict, pipeline=None, model=None) -> pd.DataFrame:
+    """
+    In-memory batch inference:
+    1. Validate required raw_features exist in df
+    2. Apply feature engineering
+    3. Transform features via the pipeline
+    4. Optionally keep only engineered features
+    5. Generate predictions and probabilities
+    Returns a DataFrame with predictions and probabilities.
+    """
+    # Load pipeline and model if not provided
+    if pipeline is None:
+        pp_path = config.get("artifacts", {}).get(
+            "preprocessing_pipeline", "models/preprocessing_pipeline.pkl"
+        )
+        pipeline = _load_pickle(pp_path, "preprocessing pipeline")
+    if model is None:
+        model_path = config.get("artifacts", {}).get(
+            "model_path", "models/model.pkl")
+        model = _load_pickle(model_path, "model")
+
+    raw_features = config.get("raw_features", [])
+    target = config.get("target", None)
+    input_features_raw = [f for f in raw_features if f != target]
+
+    missing = [c for c in raw_features if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    X_raw = df[input_features_raw]
+    X_raw = add_engineered_features(X_raw.copy())
+
+    X_proc = pipeline.transform(X_raw)
+
+    engineered = config.get("features", {}).get("engineered", [])
+    if engineered:
+        feature_names = get_output_feature_names(
+            preprocessor=pipeline,
+            input_features=raw_features,
+            config=config,
+        )
+        selected = [f for f in engineered if f in feature_names]
+        if not selected:
+            raise ValueError("None of the engineered features are present after transform")
+        indices = [feature_names.index(f) for f in selected]
+        X_proc = X_proc[:, indices]
+
+    preds = model.predict(X_proc)
+    proba = model.predict_proba(X_proc)[:, 1] if hasattr(model, "predict_proba") else None
+
+    result_df = df.copy()
+    result_df["prediction"] = preds
+    if proba is not None:
+        result_df["prediction_proba"] = proba
+    return result_df
+
+
 # CLI entry point
 def main() -> None:
     """
