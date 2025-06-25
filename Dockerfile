@@ -10,12 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # copy application code
-COPY app ./app
 COPY src ./src
 COPY config.yaml ./
 COPY main.py ./
 COPY MLproject ./
-COPY scripts ./scripts
 
 
 RUN pip install --upgrade pip
