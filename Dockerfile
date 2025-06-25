@@ -9,16 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl build-essential && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# copy application code
-COPY src ./src
-COPY config.yaml ./
-COPY main.py ./
-COPY MLproject ./
-
+COPY . .
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python scripts/download_from_wandb.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["python", "main.py"]
