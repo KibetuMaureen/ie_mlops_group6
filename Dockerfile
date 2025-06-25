@@ -16,4 +16,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["mlflow", "run", "."]
+CMD ["python", "main.py"]
