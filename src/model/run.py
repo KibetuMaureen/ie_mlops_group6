@@ -1,16 +1,34 @@
-import sys
-import os
+"""
+model_train.py
+
+This script runs the model training pipeline using Hydra for configuration
+and Weights & Biases (W&B) for experiment tracking and artifact logging.
+
+Steps performed:
+1. Loads configuration and environment variables.
+2. Starts a W&B run and fetches validated data from a W&B artifact.
+3. Logs training data schema and a sample of rows for tracking.
+4. Trains a model using the run_model_pipeline function.
+5. Saves and logs the trained model and preprocessing pipeline.
+6. Updates W&B summary with dataset and feature details.
+
+Usage:
+Run this script as the main module. Configuration is managed by Hydra.
+"""
+
 import logging
-import hydra
-from omegaconf import DictConfig, OmegaConf
-from pathlib import Path
-from datetime import datetime
-import wandb
-import pandas as pd
+import sys
 import tempfile
-import yaml
+from datetime import datetime
+from pathlib import Path
+
+import hydra
 import joblib
+import pandas as pd
+import wandb
+import yaml
 from dotenv import load_dotenv
+from omegaconf import DictConfig, OmegaConf
 
 SRC_ROOT = Path(__file__).resolve().parents[1]
 if str(SRC_ROOT) not in sys.path:
@@ -85,7 +103,6 @@ def main(cfg: DictConfig):
         model, preprocessor = run_model_pipeline(df, cfg_dict)
 
         # Save and log model artifact
-        #model_path = "model.pkl"
         model_path = PROJECT_ROOT / cfg.artifacts.get("model_path", "models/model.pkl")
         joblib.dump(model, model_path)
         model_art = wandb.Artifact("model", type="model")
@@ -93,7 +110,6 @@ def main(cfg: DictConfig):
         run.log_artifact(model_art, aliases=["latest"])
 
         # Save and log preprocessing pipeline artifact
-        #preproc_path = "preprocessing_pipeline.pkl"
         preproc_path = PROJECT_ROOT / cfg.artifacts.get("preprocessing_pipeline", "models/preprocessing_pipeline.pkl")
         joblib.dump(preprocessor, preproc_path)
         preproc_art = wandb.Artifact("preprocessing_pipeline", type="pipeline")

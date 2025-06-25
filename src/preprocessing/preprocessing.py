@@ -1,15 +1,37 @@
-import pandas as pd
+"""
+preprocessing.py
+
+This module contains preprocessing utilities for structured datasets.
+It provides functions to:
+- Apply label encoding to selected columns.
+- Construct a scikit-learn preprocessing pipeline.
+- Retrieve feature names after transformation.
+
+The script can also be run as a standalone module to preprocess data
+using a config YAML file.
+
+Usage (as script):
+    python -m src.preprocessing.preprocessing input.csv output.csv config.yaml
+"""
+
 import logging
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.pipeline import Pipeline
+import sys
+
+from pathlib import Path
+
+import pandas as pd
+import yaml
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import (
+    LabelEncoder,
+    OneHotEncoder,
+    StandardScaler,
+)
 
 logger = logging.getLogger(__name__)
 
-# NOTE: The main pipeline expects build_preprocessing_pipeline to encode all categorical columns to numeric (e.g., via OneHotEncoder).
-# The preprocess_data function is for standalone scripts only.
 
 def preprocess_data(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     """
@@ -23,7 +45,6 @@ def preprocess_data(df: pd.DataFrame, config: dict) -> pd.DataFrame:
             "label_encode", []
         )
         # Label Encoding (replace original column)
-        from sklearn.preprocessing import LabelEncoder
         label_encoders = {}
         for col in label_encode_cols:
             if col in df.columns:
@@ -61,7 +82,7 @@ def build_preprocessing_pipeline(config: dict) -> Pipeline:
         transformers.append(("cat", categorical_pipeline, categorical_features))
     preprocessor = ColumnTransformer(
         transformers=transformers,
-        remainder="drop"  # drop any columns not specified
+        remainder="drop"
     )
     pipeline = Pipeline([
         ("preprocessor", preprocessor)
@@ -89,8 +110,6 @@ def get_output_feature_names(
     return feature_names
 
 if __name__ == "__main__":
-    import sys
-    import yaml
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",

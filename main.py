@@ -1,15 +1,16 @@
-import mlflow
-import tempfile
+import logging
 import os
-import hydra
-from omegaconf import DictConfig
-from dotenv import load_dotenv
+import shutil
+import tempfile
 from datetime import datetime
+from pathlib import Path
+
+import hydra
+import mlflow
 import wandb
 import yaml
-import shutil
-from pathlib import Path
-import logging
+from dotenv import load_dotenv
+from omegaconf import DictConfig
 
 load_dotenv()
 
@@ -36,6 +37,7 @@ PIPELINE_STEPS = [
 # Steps that accept Hydra overrides via MLflow parameters (if any)
 STEPS_WITH_OVERRIDES = {"model"}
 
+
 @hydra.main(config_name="config", config_path=".", version_base=None)
 def main(cfg: DictConfig):
     os.environ["WANDB_PROJECT"] = cfg.main.WANDB_PROJECT
@@ -53,11 +55,9 @@ def main(cfg: DictConfig):
     steps_raw = cfg.main.steps
     active_steps = [s.strip() for s in steps_raw.split(",") if s.strip()] \
         if steps_raw != "all" else PIPELINE_STEPS
-    
-    #hydra_override = getattr(cfg.main, "hydra_options", "").strip()
+
     hydra_override = cfg.main.hydra_options if hasattr(
         cfg.main, "hydra_options") else ""
-    # Only pass hydra_options if it's not empty and the step supports it
 
     with tempfile.TemporaryDirectory():
         for step in active_steps:
@@ -74,10 +74,8 @@ def main(cfg: DictConfig):
             else:
                 mlflow.run(step_dir, "main", env_manager='local')
 
-
     wandb.finish()
 
-if __name__ == "__main__":
-    main()
 
-# force render deploy
+if __name__ == "__main__":
+    main()  # pylint: disable=no-value-for-parameter

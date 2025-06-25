@@ -1,18 +1,39 @@
-import sys
-import os
-import logging
-import hydra
-from omegaconf import DictConfig, OmegaConf
-from pathlib import Path
-from datetime import datetime
-import wandb
-import pandas as pd
-import pickle
-import json
-import tempfile
-from dotenv import load_dotenv
+"""
+This module executes the preprocessing step of a machine learning pipeline.
 
-from preprocessing.preprocessing import preprocess_data, build_preprocessing_pipeline, get_output_feature_names
+It integrates with Weights & Biases (WandB) to:
+- Load the latest engineered dataset artifact,
+- Log data statistics and samples,
+- Apply label encoding and transformation pipelines (scaling, imputation, encoding),
+- Save and log the preprocessing pipeline artifact,
+- Generate and log preprocessed training, validation, and test datasets.
+
+It uses a Hydra-configured entrypoint and outputs all artifacts to specified directories.
+
+Typical usage:
+    python -m src.steps.preprocess
+"""
+
+import json
+import logging
+import os
+import pickle
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+import hydra
+import pandas as pd
+import wandb
+from dotenv import load_dotenv
+from omegaconf import DictConfig, OmegaConf
+
+from preprocessing.preprocessing import (
+    build_preprocessing_pipeline,
+    get_output_feature_names,
+    preprocess_data,
+)
 
 load_dotenv()
 logging.basicConfig(
@@ -24,10 +45,12 @@ logger = logging.getLogger("preprocessing")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
+
 def compute_df_hash(df: pd.DataFrame) -> str:
     """Compute a hash for the input DataFrame, including index."""
     import hashlib
     return hashlib.sha256(pd.util.hash_pandas_object(df, index=True).values).hexdigest()
+
 
 @hydra.main(config_path=str(PROJECT_ROOT), config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
@@ -173,6 +196,7 @@ def main(cfg: DictConfig) -> None:
         if wandb.run is not None:
             wandb.finish()
             logger.info("WandB run finished")
+
 
 if __name__ == "__main__":
     main()  # pylint: disable=no-value-for-parameter

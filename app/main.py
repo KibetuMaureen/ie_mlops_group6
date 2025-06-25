@@ -1,11 +1,31 @@
+"""
+Fraud Detection Inference API using FastAPI.
+
+This module defines a REST API for serving a trained credit card fraud detection model.
+It loads a preprocessing pipeline and a trained classification model, and exposes endpoints
+for single and batch predictions.
+
+Endpoints:
+- GET `/`             : Welcome message
+- GET `/health`       : Health check endpoint
+- POST `/predict`     : Predict fraud for a single transaction
+- POST `/predict_batch`: Predict fraud for a batch of transactions
+
+Dependencies:
+- Loads configuration from a YAML file
+- Loads model and pipeline from pickled files
+- Uses Pydantic for input validation
+"""
+
+from typing import List
+from pathlib import Path
+import os
+import pickle
+import pandas as pd
+import yaml
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from typing import List
-import pandas as pd
-import pickle
-import os
-import yaml
-from pathlib import Path
 
 from src.features.features import add_engineered_features
 from src.preprocessing.preprocessing import get_output_feature_names
