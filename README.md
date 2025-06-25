@@ -23,6 +23,8 @@ A modular, production-ready MLOps pipeline designed to detect fraudulent credit 
 - [🛠️ Configuration](#configuration)
 - [👥 Authors](#authors)
 - [📬 Contact](#contact)
+- [🐳 Docker Setup](#docker-setup)
+- [🚀 Deploying on Render.com](#deploying-on-rendercom)
 
 ---
 
@@ -206,15 +208,40 @@ DeepWiki provides:
     
 ---
 
+## 🐳 Docker Setup
+
+You can run the pipeline and serve the FastAPI API using Docker. This ensures a consistent environment for both local development and deployment.
+
+### 1. Build the Docker Image
+
+```bash
+docker build -t credit-card-fraud:local .
+```
+
+### 2. Run the Pipeline to Generate Artifacts
+
+To generate `model.pkl` and `preprocessing_pipeline.pkl` inside the container and save them to your local `models/` directory:
+
+```bash
+docker run --rm -it -v "$(pwd)/models:/app/models" --env-file .env credit-card-fraud:local python main.py
+```
+- This mounts your local `models/` directory to the container, so artifacts are saved on your host.
+- Make sure your `.env` file contains your W&B API key if needed.
+
+### 3. Run the FastAPI App Locally
+
+To serve the API (after generating artifacts):
+
+```bash
+docker run --rm -it -p 8000:8000 credit-card-fraud:local
+```
+- The API will be available at [http://localhost:8000](http://localhost:8000)
+- Interactive docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+
+
 ## Pipeline Stages
 
-```mermaid
-graph TD
-    A[📥 Data Loading] --> B[✅ Data Validation]
-    B --> C[🧹 Preprocessing]
-    C --> D[🧠 Model Training]
-    D --> E[📋 Logging]
-```
 
 - **Data Loading:** Reads raw data from CSV or other sources.
 - **Data Validation:** Checks schema, types, and required columns.
