@@ -1,11 +1,8 @@
 services:
   - type: web
     name: credit-card-fraud-api
-    env: python
+    env: docker
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: WANDB_API_KEY
-        sync: false  # Set in Render dashboard if needed
-  
+        sync: false
