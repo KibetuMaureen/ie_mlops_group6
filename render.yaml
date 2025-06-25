@@ -6,7 +6,7 @@ services:
     autoDeploy: false
     region: oregon
     buildCommand: ""
-    startCommand: "python main.py"
+    startCommand: "mlflow run ."
     envVars:
       - key: WANDB_PROJECT
         value: your_wandb_project_name
